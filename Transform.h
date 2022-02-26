@@ -29,13 +29,13 @@ public:
     [[nodiscard]] const Point& GetLocation() const;
     [[nodiscard]] const double& GetX() const;
     [[nodiscard]] const double& GetY() const;
-    [[nodiscard]] const double GetScaleX() const;
-    [[nodiscard]] const double GetScaleY() const;
-    [[nodiscard]] const double GetRotationD() const; // degrees
-    [[nodiscard]] const double GetRotationR() const; // radians
+    [[nodiscard]] double GetScaleX() const;
+    [[nodiscard]] double GetScaleY() const;
+    [[nodiscard]] double GetRotationD() const; // degrees
+    [[nodiscard]] double GetRotationR() const; // radians
 
     // Transforms a point by *this
-    const void Map(Point& point) const;
+    void Map(Point& point) const;
     [[nodiscard]] const Point Mapped(const Point& point) const;
 
     // Creates modified copy

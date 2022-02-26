@@ -124,29 +124,29 @@ const double& Transform::GetY() const
     return position.y;
 }
 
-const double Transform::GetScaleX() const
+double Transform::GetScaleX() const
 {
     return std::sqrt(std::pow(a1, 2.) + std::pow(b1, 2.));
 }
 
-const double Transform::GetScaleY() const
+double Transform::GetScaleY() const
 {
     return std::sqrt(std::pow(a2, 2.) + std::pow(b2, 2.));
 }
 
-const double Transform::GetRotationD() const
+double Transform::GetRotationD() const
 {
-    constexpr double toDegrees = 180.0 / Tril::Pi;
+    constexpr double toDegrees = 180.0 / std::numbers::pi;
     return GetRotationR() * toDegrees;
 }
 
-const double Transform::GetRotationR() const
+double Transform::GetRotationR() const
 {
     assert(std::atan(-a2/a1) == std::atan(b1/b2));
     return std::atan(b1/b2);
 }
 
-const void Transform::Map(Point& point) const
+void Transform::Map(Point& point) const
 {
     // TODO this can be optimised greatly, there is no need to do a full matrix multiplication here
     Transform result = Transform(point) * *this;
@@ -223,7 +223,7 @@ void Transform::SetLocation(const Point& location)
 
 void Transform::SetRotationD(double degrees)
 {
-    constexpr double toRadians = Tril::Pi / 180.0;
+    constexpr double toRadians = std::numbers::pi / 180.0;
     SetRotationR(degrees * toRadians);
 }
 
@@ -244,7 +244,7 @@ void Transform::SetRotationR(double radians)
 
 void Transform::RotateD(double degrees)
 {
-    constexpr double toRadians = Tril::Pi / 180.0;
+    constexpr double toRadians = std::numbers::pi / 180.0;
     RotateR(degrees * toRadians);
 }
 
