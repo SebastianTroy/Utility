@@ -35,3 +35,24 @@ TEST_CASE("TestNonTrivial", "[json]")
     REQUIRE(deserialisedReserialised == serialised);
     REQUIRE(deserialised == original);
 }
+
+TEST_CASE("std::vector<TestNonTrivial>")
+{
+    std::vector<NonTrivialTestType> original;
+
+    for (int i = 0; i < 10; ++i) {
+        auto item = NonTrivialTestType{ i };
+        item.b_ = i % 2 == 0;
+        original.push_back(std::move(item));
+    }
+
+    json serialised = JsonHelpers::Serialise(original);
+    REQUIRE(JsonHelpers::Validate<decltype(original)>(serialised));
+
+    std::vector<NonTrivialTestType> deserialised = JsonHelpers::Deserialise<decltype(original)>(serialised);
+    json deserialisedReserialised = JsonHelpers::Serialise(deserialised);
+
+    // test this first so failures print out the before and after JSON, instead of a less helpful failed comparison
+    REQUIRE(deserialisedReserialised == serialised);
+    REQUIRE(deserialised == original);
+}
