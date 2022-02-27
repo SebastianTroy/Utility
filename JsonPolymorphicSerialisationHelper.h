@@ -13,7 +13,7 @@
 #include <memory>
 #include <map>
 
-namespace Tril {
+namespace util {
 
 template <typename BaseType>
 class JsonPolymorphicSerialisationHelper {
@@ -68,8 +68,8 @@ public:
     static void RegisterChildType()
     {
         static_assert(std::is_base_of_v<BaseType, ChildType>);
-        static_assert(std::is_same_v<decltype(&BaseType::TypeName), std::string(BaseType::*)() const>, "BaseType must implement a 'std::string TypeName() const' function returning 'Tril::TypeName<T>();'");
-        static_assert(std::is_same_v<decltype(&ChildType::TypeName), std::string(ChildType::*)() const>, "ChildType must implement a 'std::string TypeName() const override' function returning 'Tril::TypeName<T>();'");
+        static_assert(std::is_same_v<decltype(&BaseType::TypeName), std::string(BaseType::*)() const>, "BaseType must implement a 'std::string TypeName() const' function returning 'util::TypeName<T>();'");
+        static_assert(std::is_same_v<decltype(&ChildType::TypeName), std::string(ChildType::*)() const>, "ChildType must implement a 'std::string TypeName() const override' function returning 'util::TypeName<T>();'");
 
         // Make sure the parent type can serialise / deserialise this type
         PolymorphicHelper polymorphicHelper;
@@ -120,18 +120,18 @@ private:
     static void CheckType()
     {
         if (GetInstance().childTypes_.empty()) {
-            fmt::print("No child types registered for {}, perhaps you meant JsonSerialisationHelper<{}>?\n", std::string(Tril::TypeName<BaseType>()), std::string(Tril::TypeName<BaseType>()));
+            fmt::print("No child types registered for {}, perhaps you meant JsonSerialisationHelper<{}>?\n", std::string(util::TypeName<BaseType>()), std::string(util::TypeName<BaseType>()));
         }
     }
 
     static void CheckForTypeName(const nlohmann::json& json)
     {
         if (!json.contains(TYPENAME_KEY)) {
-            fmt::print("Couldn't find \"__typename\" in {}, for type {}\n", json.dump(2), std::string(Tril::TypeName<BaseType>()));
+            fmt::print("Couldn't find \"__typename\" in {}, for type {}\n", json.dump(2), std::string(util::TypeName<BaseType>()));
         }
     }
 };
 
-} // end namespace Tril
+} // end namespace util
 
 #endif // JSONPOLYMORPHICSERIALISATIONHELPER_H

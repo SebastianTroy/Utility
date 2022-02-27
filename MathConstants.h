@@ -3,10 +3,10 @@
 
 #include <numbers>
 
-namespace Tril {
+namespace util {
 
 constexpr double Tau = std::numbers::pi * 2;
 
-} // end namespace Tril
+} // end namespace util
 
 #endif // MATHCONSTANTS_H

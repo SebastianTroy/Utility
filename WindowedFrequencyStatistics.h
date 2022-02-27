@@ -5,7 +5,7 @@
 
 #include <chrono>
 
-namespace Tril {
+namespace util {
 
 /**
  * A means of tracking the frequency of an event in Hz by looking at the
@@ -27,6 +27,6 @@ private:
     WindowedRollingStatistics intervalStats_;
 };
 
-} // end namespace Tril
+} // end namespace util
 
 #endif // WINDOWEDFREQUENCYSTATISTICS_H

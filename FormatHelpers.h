@@ -116,7 +116,7 @@ std::ostream& operator<<(std::ostream& ostr, const std::vector<ValueType>& value
 }
 
 /**
- * iostream helper for printing Tril::Transform
+ * iostream helper for printing util::Transform
  */
 inline std::ostream& operator<<(std::ostream& ostr, const Transform& t)
 {
@@ -128,7 +128,7 @@ inline std::ostream& operator<<(std::ostream& ostr, const Transform& t)
 }
 
 /**
- * iostream helper for printing Tril::Circle
+ * iostream helper for printing util::Circle
  */
 inline std::ostream& operator<<(std::ostream& ostr, const Circle& c)
 {

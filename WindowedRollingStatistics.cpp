@@ -1,13 +1,13 @@
 #include "WindowedRollingStatistics.h"
 
 
-Tril::WindowedRollingStatistics::WindowedRollingStatistics(size_t windowSize)
+util::WindowedRollingStatistics::WindowedRollingStatistics(size_t windowSize)
     : values_(windowSize)
 {
     Reset();
 }
 
-void Tril::WindowedRollingStatistics::AddValue(double newValue)
+void util::WindowedRollingStatistics::AddValue(double newValue)
 {
     sumOfValues_ += newValue;
     sumOfValuesSquared_ += std::pow(newValue, 2.0);
@@ -24,7 +24,7 @@ void Tril::WindowedRollingStatistics::AddValue(double newValue)
     values_.PushBack(newValue);
 }
 
-void Tril::WindowedRollingStatistics::Reset()
+void util::WindowedRollingStatistics::Reset()
 {
     values_.Clear();
     sumOfValues_ = 0.0;
@@ -34,7 +34,7 @@ void Tril::WindowedRollingStatistics::Reset()
     updateMinMax_ = false;
 }
 
-double Tril::WindowedRollingStatistics::Min()
+double util::WindowedRollingStatistics::Min()
 {
     if (updateMinMax_) {
         UpdateMinMax();
@@ -42,7 +42,7 @@ double Tril::WindowedRollingStatistics::Min()
     return min_;
 }
 
-double Tril::WindowedRollingStatistics::Max()
+double util::WindowedRollingStatistics::Max()
 {
     if (updateMinMax_) {
         UpdateMinMax();
@@ -50,7 +50,7 @@ double Tril::WindowedRollingStatistics::Max()
     return max_;
 }
 
-double Tril::WindowedRollingStatistics::StandardDeviation() const
+double util::WindowedRollingStatistics::StandardDeviation() const
 {
     if (Count() > 1) {
         return std::sqrt((sumOfValuesSquared_ - (std::pow(sumOfValues_, 2) / Count())) / Count());
@@ -59,7 +59,7 @@ double Tril::WindowedRollingStatistics::StandardDeviation() const
     }
 }
 
-void Tril::WindowedRollingStatistics::UpdateMinMax()
+void util::WindowedRollingStatistics::UpdateMinMax()
 {
     updateMinMax_ = false;
     min_ = std::numeric_limits<double>::max();

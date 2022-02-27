@@ -6,7 +6,7 @@
 
 #include <thread>
 
-using namespace Tril;
+using namespace util;
 
 TEST_CASE("WindowedRollingStatistics", "[stats]")
 {

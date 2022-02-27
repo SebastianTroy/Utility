@@ -10,7 +10,7 @@
 
 #include <assert.h>
 
-namespace Tril {
+namespace util {
 
 /**
  * This type allows classes to easily be serialised, deserialised and validated.
@@ -21,7 +21,7 @@ namespace Tril {
  *
  * To make a type support serialisation in this way, you need to implement a
  * single static function:
- *    static void ConfigureJsonSerialisationHelper(Tril::JsonSerialisationHelper<T>& helper)
+ *    static void ConfigureJsonSerialisationHelper(util::JsonSerialisationHelper<T>& helper)
  *    {
  *        helper.RegisterVariable("UniqueKey_1", &T::memberVariable1_);
  *        helper.RegisterVariable("UniqueKey_2", &T::memberVariable2_);
@@ -133,7 +133,7 @@ public:
             for (const auto& [ key, jsonValue ] : json.items()) {
                 if (GetInstance().memberVariables_.count(key) == 1) {
                     if (!JsonHelpers::MatchType(GetInstance().memberVariables_.at(key).storageType_, jsonValue.type())) {
-                        fmt::print("Invalid storage Type for variable of type {} with key {}: Expected {}, got {}.\n", Tril::TypeName<T>(), key, GetInstance().memberVariables_.at(key).storageType_, jsonValue.type());
+                        fmt::print("Invalid storage Type for variable of type {} with key {}: Expected {}, got {}.\n", util::TypeName<T>(), key, GetInstance().memberVariables_.at(key).storageType_, jsonValue.type());
                         assert(false && "Invalid storage Type for variable");
                         valid = false;
                     } else if (!GetInstance().memberVariables_.at(key).validator_(jsonValue)) {
@@ -141,8 +141,8 @@ public:
                         assert(false && "Invalid value for serialised variable");
                         valid = false;
                     }
-                } else {
-                    fmt::print("Invalid key found in object of type {}: {}.\n", Tril::TypeName<T>(), key);
+                } else if (key != "__typename") { // exception for __typename which is used for polymorphic types
+                    fmt::print("Invalid key found in object of type {}: {}.\n", util::TypeName<T>(), key);
                     assert(false && "Invalid key found in object");
                     valid = false;
                 }
@@ -169,7 +169,7 @@ public:
         static_assert((IsInstance<Parameters, Parameter> && ...), "All parameters must be of type Parameter<...>");
 
         if (constructionHelper_.parser_ != nullptr) {
-            fmt::print("Cannot register multiple constructors for type {}", Tril::TypeName<T>());
+            fmt::print("Cannot register multiple constructors for type {}", util::TypeName<T>());
             assert(false && "Cannot register multiple constructors for type in JsonSerialisationHelper<T>");
         }
 
@@ -259,7 +259,7 @@ public:
         static_assert(std::is_copy_assignable_v<VariableType> || std::is_move_assignable_v<VariableType>, "Registered type must be move or copy assignable");
 
         if (JsonHelpers::GetStorageType<VariableType>() == nlohmann::json::value_t::null) {
-            fmt::print("Cannot register variable {}, of type {}, unknown storage type.\n", key, Tril::TypeName<VariableType>());
+            fmt::print("Cannot register variable {}, of type {}, unknown storage type.\n", key, util::TypeName<VariableType>());
             assert(false && "Cannot register a variable with null storage type");
         }
 
@@ -303,8 +303,9 @@ private:
         : constructionHelper_{}
         , memberVariables_{}
     {
-          static_assert(std::is_same_v<decltype(&T::ConfigureJsonSerialisationHelper), void (*)(JsonSerialisationHelper<T>&)>);
-          T::ConfigureJsonSerialisationHelper(*this);
+        // If the assert below fails, make sure you arent trying to serialise/deserialise a const variable
+        static_assert(std::is_same_v<decltype(&T::ConfigureJsonSerialisationHelper), void (*)(JsonSerialisationHelper<T>&)>);
+        T::ConfigureJsonSerialisationHelper(*this);
 
         // Make sure our constructor is valid
         constexpr bool isTriviallyConstructable = std::is_default_constructible_v<T>;
@@ -316,7 +317,7 @@ private:
             }
         } else if constexpr (!isTriviallyConstructable) {
             if (constructionHelper_.parser_ == nullptr) {
-                fmt::print("Must register a constructor for a non-default constructable type!: {}\n", Tril::TypeName<T>());
+                fmt::print("Must register a constructor for a non-default constructable type!: {}\n", util::TypeName<T>());
                 assert(false && "JsonSerialisationHelper<T>: Must register a constructor for a non-default constructable type!");
             }
         }
@@ -325,12 +326,12 @@ private:
     void AddVariable(Variable&& helper)
     {
         if (memberVariables_.count(helper.key_) != 0) {
-            fmt::print("Duplicate key registered for type {}, key: {}\n", Tril::TypeName<T>(), helper.key_);
+            fmt::print("Duplicate key registered for type {}, key: {}\n", util::TypeName<T>(), helper.key_);
         }
         memberVariables_.insert(std::make_pair(helper.key_, helper));
     }
 };
 
-} // end namespace Tril
+} // end namespace util
 
 #endif // JSONSERIALISATIONHELPER_H

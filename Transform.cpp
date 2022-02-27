@@ -40,7 +40,7 @@ Transform::Transform(const std::array<double, 9>& values)
 {
 }
 
-void Transform::ConfigureJsonSerialisationHelper(Tril::JsonSerialisationHelper<Transform>& helper)
+void Transform::ConfigureJsonSerialisationHelper(util::JsonSerialisationHelper<Transform>& helper)
 {
     helper.RegisterVariable("a1", &Transform::a1);
     helper.RegisterVariable("a2", &Transform::a2);

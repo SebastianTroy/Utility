@@ -4,7 +4,7 @@
 #include <limits>
 #include <cstdint>
 
-namespace Tril {
+namespace util {
 
 class RollingStatistics {
 public:
@@ -26,6 +26,6 @@ private:
     double max_ = std::numeric_limits<double>::lowest();
 };
 
-} // namespace Tril
+} // namespace util
 
 #endif // ROLLINGSTATISTICS_H

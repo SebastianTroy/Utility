@@ -10,8 +10,8 @@ using namespace nlohmann;
 NeuralNetworkConnector::NeuralNetworkConnector(unsigned inputs, unsigned outputs)
     : weights_(inputs, std::vector<double>(outputs, 0.0))
 {
-    std::vector<size_t> inputIndexes = Tril::CreateSeries<size_t>(0, inputs);
-    std::vector<size_t> outputIndexes = Tril::CreateSeries<size_t>(0, outputs);
+    std::vector<size_t> inputIndexes = util::CreateSeries<size_t>(0, inputs);
+    std::vector<size_t> outputIndexes = util::CreateSeries<size_t>(0, outputs);
 
     // so we don't just connect input 1 to output 1, and input 2 to output 2 etc
     Random::Shuffle(inputIndexes);
@@ -21,7 +21,7 @@ NeuralNetworkConnector::NeuralNetworkConnector(unsigned inputs, unsigned outputs
      * Creates a bunch of 1:1 connections between inputs and outputs. The larger
      * of inputs or outputs will therefore have some unconnected nodes.
      */
-    Tril::IterateBoth<size_t, size_t>(inputIndexes, outputIndexes, [&](const size_t& in, const size_t& out)
+    util::IterateBoth<size_t, size_t>(inputIndexes, outputIndexes, [&](const size_t& in, const size_t& out)
     {
         // set the weight of an input to an output to 1 so it is a "direct passthrough" connection
         weights_.at(in).at(out) = 1.0;
@@ -33,7 +33,7 @@ NeuralNetworkConnector::NeuralNetworkConnector(std::vector<std::vector<double>>&
 {
 }
 
-void NeuralNetworkConnector::ConfigureJsonSerialisationHelper(Tril::JsonSerialisationHelper<NeuralNetworkConnector>& helper)
+void NeuralNetworkConnector::ConfigureJsonSerialisationHelper(util::JsonSerialisationHelper<NeuralNetworkConnector>& helper)
 {
     helper.RegisterConstructor(helper.CreateParameter("Weights", &NeuralNetworkConnector::weights_));
 }
@@ -41,9 +41,9 @@ void NeuralNetworkConnector::ConfigureJsonSerialisationHelper(Tril::JsonSerialis
 void NeuralNetworkConnector::PassForward(const std::vector<double>& inputValues, std::vector<double>& outputValues)
 {
     assert(inputValues.size() == weights_.size() && outputValues.size() == weights_.at(0).size());
-    Tril::IterateBoth<double, std::vector<double>>(inputValues, weights_, [&outputValues](const double& input, const std::vector<double>& inputWeights) -> void
+    util::IterateBoth<double, std::vector<double>>(inputValues, weights_, [&outputValues](const double& input, const std::vector<double>& inputWeights) -> void
     {
-        Tril::IterateBoth<double, double>(inputWeights, outputValues, [&input](const double& inputWeight, double& output) -> void
+        util::IterateBoth<double, double>(inputWeights, outputValues, [&input](const double& inputWeight, double& output) -> void
         {
             output += input * inputWeight;
         });

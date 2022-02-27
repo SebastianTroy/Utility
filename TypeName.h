@@ -5,7 +5,7 @@
 #include <string_view>
 #include <sstream>
 
-namespace Tril {
+namespace util {
 
 // credit https://stackoverflow.com/users/3624760/lyberta
 template <typename T>
@@ -14,15 +14,15 @@ constexpr std::string_view TypeName()
     std::string_view name, prefix, suffix;
 #ifdef __clang__
     name = __PRETTY_FUNCTION__;
-    prefix = "std::string_view Tril::TypeName() [T = ";
+    prefix = "std::string_view util::TypeName() [T = ";
     suffix = "]";
 #elif defined(__GNUC__)
     name = __PRETTY_FUNCTION__;
-    prefix = "constexpr std::string_view Tril::TypeName() [with T = ";
+    prefix = "constexpr std::string_view util::TypeName() [with T = ";
     suffix = "; std::string_view = std::basic_string_view<char>]";
 #elif defined(_MSC_VER)
     name = __FUNCSIG__;
-    prefix = "class std::basic_string_view<char,struct std::char_traits<char> > __cdecl Tril::TypeName<";
+    prefix = "class std::basic_string_view<char,struct std::char_traits<char> > __cdecl util::TypeName<";
     suffix = ">(void)";
 #endif
     name.remove_prefix(prefix.size());
@@ -41,6 +41,6 @@ std::string TypeNames(const std::string& seperator)
     return result.str();
 }
 
-} // end namespace Tril
+} // end namespace util
 
 #endif // TYPENAME_H

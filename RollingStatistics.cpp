@@ -3,7 +3,7 @@
 #include <algorithm>
 #include <cmath>
 
-namespace Tril {
+namespace util {
 
 void RollingStatistics::AddValue(const double& value)
 {
@@ -32,4 +32,4 @@ void RollingStatistics::Reset()
     max_ = std::numeric_limits<double>::lowest();
 }
 
-} // namespace Tril
+} // namespace util

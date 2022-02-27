@@ -5,7 +5,7 @@
 #include <map>
 #include <functional>
 
-namespace Tril {
+namespace util {
 
 /**
  * A container that provides a handle per item contained, and lazily removes the
@@ -48,6 +48,6 @@ private:
     std::map<std::weak_ptr<int>, ValueType, std::owner_less<std::weak_ptr<int>>> values_;
 };
 
-} // end namespace Tril
+} // end namespace util
 
 #endif // AUTOCLEARINGCONTAINER_H

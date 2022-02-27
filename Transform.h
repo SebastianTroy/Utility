@@ -17,7 +17,7 @@ public:
     Transform(const Point& location);
     Transform(const std::array<double, 9>& values);
 
-    static void ConfigureJsonSerialisationHelper(Tril::JsonSerialisationHelper<Transform>& helper);
+    static void ConfigureJsonSerialisationHelper(util::JsonSerialisationHelper<Transform>& helper);
 
     [[nodiscard]] Transform operator*(const Transform& other) const;
     Transform& operator*=(const Transform& other);

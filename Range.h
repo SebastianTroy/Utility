@@ -9,7 +9,7 @@
 #include <algorithm>
 #include <optional>
 
-namespace Tril {
+namespace util {
 
 template <typename T>
 class Range {
@@ -162,6 +162,6 @@ bool Range<T>::operator<=(const Range<T>& other) const
     return *this < other || *this == other;
 }
 
-} // end namespace Tril
+} // end namespace util
 
 #endif // RANGE_H

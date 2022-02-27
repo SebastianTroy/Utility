@@ -36,7 +36,7 @@ public:
     NeuralNetwork(unsigned layerCount, unsigned width, InitialWeights initialWeights);
     NeuralNetwork(std::vector<Layer>&& layers, unsigned width);
 
-    static void ConfigureJsonSerialisationHelper(Tril::JsonSerialisationHelper<NeuralNetwork>& helper);
+    static void ConfigureJsonSerialisationHelper(util::JsonSerialisationHelper<NeuralNetwork>& helper);
 
     size_t GetInputCount() const { return layers_.empty() ? 0 : layers_.front().size(); }
     size_t GetOutputCount() const { return layers_.empty() ? 0 : layers_.back().empty() ? 0 : layers_.back().size(); }

@@ -66,7 +66,7 @@ public:
 
     static Point PointIn(const Rect& rect)
     {
-        return { Random::Number(Tril::Range(rect.left, rect.right)), Random::Number(Tril::Range(rect.bottom, rect.top)) };
+        return { Random::Number(util::Range(rect.left, rect.right)), Random::Number(util::Range(rect.bottom, rect.top)) };
     }
 
     static Point PointIn(const Circle& circle)
@@ -94,7 +94,7 @@ public:
     }
 
     template<typename NumericType>
-    static NumericType Number(const Tril::Range<NumericType>& range)
+    static NumericType Number(const util::Range<NumericType>& range)
     {
         return Number<NumericType>(range.Min(), range.Max());
     }

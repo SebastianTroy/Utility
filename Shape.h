@@ -21,7 +21,7 @@ struct Vec2 {
     double x;
     double y;
 
-    static void ConfigureJsonSerialisationHelper(Tril::JsonSerialisationHelper<Vec2>& helper)
+    static void ConfigureJsonSerialisationHelper(util::JsonSerialisationHelper<Vec2>& helper)
     {
         helper.RegisterVariable("x", &Vec2::x);
         helper.RegisterVariable("y", &Vec2::y);
@@ -32,7 +32,7 @@ struct Point {
     double x;
     double y;
 
-    static void ConfigureJsonSerialisationHelper(Tril::JsonSerialisationHelper<Point>& helper)
+    static void ConfigureJsonSerialisationHelper(util::JsonSerialisationHelper<Point>& helper)
     {
         helper.RegisterVariable("x", &Point::x);
         helper.RegisterVariable("y", &Point::y);
@@ -43,7 +43,7 @@ struct Line {
     Point a;
     Point b;
 
-    static void ConfigureJsonSerialisationHelper(Tril::JsonSerialisationHelper<Line>& helper)
+    static void ConfigureJsonSerialisationHelper(util::JsonSerialisationHelper<Line>& helper)
     {
         helper.RegisterVariable("a", &Line::a);
         helper.RegisterVariable("b", &Line::b);
@@ -56,7 +56,7 @@ struct Circle {
     // inclusive
     double radius;
 
-    static void ConfigureJsonSerialisationHelper(Tril::JsonSerialisationHelper<Circle>& helper)
+    static void ConfigureJsonSerialisationHelper(util::JsonSerialisationHelper<Circle>& helper)
     {
         helper.RegisterVariable("x", &Circle::x);
         helper.RegisterVariable("y", &Circle::y);
@@ -72,7 +72,7 @@ struct Rect {
     double right;
     double bottom;
 
-    static void ConfigureJsonSerialisationHelper(Tril::JsonSerialisationHelper<Rect>& helper)
+    static void ConfigureJsonSerialisationHelper(util::JsonSerialisationHelper<Rect>& helper)
     {
         helper.RegisterVariable("Left", &Rect::left);
         helper.RegisterVariable("Top", &Rect::top);
@@ -221,7 +221,7 @@ inline bool Contains(const Line& l, const Point& p)
 {
     if (p == l.a || p == l.b) {
         return true;
-    } else if (Tril::Range<double>(l.a.x, l.b.x).Contains(p.x) && Tril::Range<double>(l.a.y, l.b.y).Contains(p.y)) {
+    } else if (util::Range<double>(l.a.x, l.b.x).Contains(p.x) && util::Range<double>(l.a.y, l.b.y).Contains(p.y)) {
         // Work out the slope of the line & a line connecting the point to the line
         double ldx = l.b.x - l.a.x;
         double ldy = l.b.y - l.a.y;
@@ -230,7 +230,7 @@ inline bool Contains(const Line& l, const Point& p)
 
         // Work out the slopes of the lines (checking for infinite slopes)
         if (ldy == 0.0 || pdy == 0.0) {
-            return ldy == pdy && l.a.y == p.y && Tril::Range<double>(l.a.x, l.b.x).Contains(p.x);
+            return ldy == pdy && l.a.y == p.y && util::Range<double>(l.a.x, l.b.x).Contains(p.x);
         }
 
         // Allow for floating point error

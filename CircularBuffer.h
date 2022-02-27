@@ -4,7 +4,7 @@
 #include <vector>
 #include <functional>
 
-namespace Tril {
+namespace util {
 
 template <typename T>
 class CircularBuffer {
@@ -144,6 +144,6 @@ private:
     size_t fill_;
 };
 
-} // end namespace Tril
+} // end namespace util
 
 #endif // CIRCULARBUFFER_H

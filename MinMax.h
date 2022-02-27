@@ -6,7 +6,7 @@
 #include <limits>
 #include <algorithm>
 
-namespace Tril {
+namespace util {
 
 template <typename T>
 class MinMax {
@@ -25,7 +25,7 @@ public:
     T Max() const { return IsValid() ? max_ : T{ 0 }; }
     T Range() const { return IsValid() ? max_ - min_ : T{ 0 }; }
     bool Contains(const T& value) const { return value >= min_ && value <= max_; }
-    operator Tril::Range<T>() const { return Tril::Range(Min(), Max()); }
+    operator util::Range<T>() const { return util::Range(Min(), Max()); }
 
     void ExpandToContain(const T& newValue)
     {
@@ -67,6 +67,6 @@ private:
     T max_;
 };
 
-} // end namespace Tril
+} // end namespace util
 
 #endif // MINMAX_H

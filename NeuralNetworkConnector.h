@@ -30,7 +30,7 @@ public:
     NeuralNetworkConnector(unsigned inputs, unsigned outputs);
     NeuralNetworkConnector(std::vector<std::vector<double> >&& weights);
 
-    static void ConfigureJsonSerialisationHelper(Tril::JsonSerialisationHelper<NeuralNetworkConnector>& helper);
+    static void ConfigureJsonSerialisationHelper(util::JsonSerialisationHelper<NeuralNetworkConnector>& helper);
 
     void PassForward(const std::vector<double>& inputValues, std::vector<double>& outputValues);
 

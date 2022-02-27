@@ -6,7 +6,7 @@
 
 #include <algorithm>
 
-using namespace Tril;
+using namespace util;
 
 TEST_CASE("CircularBuffer", "[container]")
 {

@@ -7,7 +7,7 @@
 #include <cstdint>
 #include <assert.h>
 
-namespace Tril {
+namespace util {
 template <typename T1, typename T2>
 void IterateBoth(std::vector<T1>& a, std::vector<T2>& b, std::function<void(T1& a, T2& b)>&& action)
 {
@@ -149,6 +149,6 @@ std::vector<T> Combine(std::vector<T>&& first, std::vector<T>&& second)
     return combined;
 }
 
-} // namespace Tril
+} // namespace util
 
 #endif // ALGORITHM_H

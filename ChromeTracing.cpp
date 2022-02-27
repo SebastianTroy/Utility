@@ -5,7 +5,7 @@
 #include <thread>
 #include <iostream>
 
-namespace Tril {
+namespace util {
 
 void ChromeTracing::AddTraceWindow(std::string name, size_t eventCount, std::chrono::steady_clock::time_point traceStart)
 {
@@ -133,4 +133,4 @@ void ChromeTracing::WriteToFile(std::string fileName, bool append)
     std::cout << fmt::format("Trace file {}: {}", append ? "added to" : "created", traceDirectory_ + fileName + ".trace") << std::endl;
 }
 
-} // namespace Tril
+} // namespace util

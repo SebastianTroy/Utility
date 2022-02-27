@@ -5,7 +5,7 @@
 
 #include <cmath>
 
-namespace Tril {
+namespace util {
 
 /**
  * For continuously monitoring a value with statistics covering a number of
@@ -38,6 +38,6 @@ private:
     void UpdateMinMax();
 };
 
-} // end namespace Tril
+} // end namespace util
 
 #endif // WINDOWEDROLLINGSTATISTICS_H

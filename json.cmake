@@ -6,6 +6,7 @@ FetchContent_Declare(
 
 set(JSON_BuildTests OFF CACHE INTERNAL "")
 set(JSON_Install OFF CACHE INTERNAL "")
+set(JSON_MultipleHeaders ON CACHE INTERNAL "")
 
 FetchContent_MakeAvailable(json)
 

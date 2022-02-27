@@ -3,7 +3,7 @@
 
 #include <catch2/catch.hpp>
 
-using namespace Tril;
+using namespace util;
 
 namespace {
 constexpr int REPEAT_COUNT = 10;

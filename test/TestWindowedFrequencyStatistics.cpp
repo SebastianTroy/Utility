@@ -6,7 +6,7 @@
 
 #include <thread>
 
-using namespace Tril;
+using namespace util;
 
 namespace {
     // These tests can run for a long time, increase these if retesting is required

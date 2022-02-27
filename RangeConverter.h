@@ -7,7 +7,7 @@
 
 #include <optional>
 
-namespace Tril {
+namespace util {
 
 class RangeConverter {
 public:
@@ -15,7 +15,7 @@ public:
     RangeConverter(RangeConverter&& other) = default;
     RangeConverter(Range<double> from, Range<double> to);
 
-    static void ConfigureJsonSerialisationHelper(Tril::JsonSerialisationHelper<RangeConverter>& helper);
+    static void ConfigureJsonSerialisationHelper(util::JsonSerialisationHelper<RangeConverter>& helper);
 
     RangeConverter& operator=(const RangeConverter& other) = default;
     RangeConverter& operator=(RangeConverter&& other) = default;
@@ -29,6 +29,6 @@ private:
     Range<double> to_;
 };
 
-} // end namespace Tril
+} // end namespace util
 
 #endif // RANGECONVERTER_H

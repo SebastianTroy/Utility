@@ -10,7 +10,7 @@
 #include <algorithm>
 #include <cmath>
 
-namespace Tril {
+namespace util {
 
 /**
  * @brief Not really an iterator so much as a convinience class encapsulating
@@ -645,6 +645,6 @@ private:
     }
 };
 
-} // namespace Tril
+} // namespace util
 
 #endif // QUADTREE_H

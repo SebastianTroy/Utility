@@ -9,6 +9,8 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 Message("Compiler: ${CMAKE_CXX_COMPILER_ID}")
 
+option(UTILITY_Tests "Build & run the unit tests if BUILD_TESTING is true." ON)
+
 include(FetchContent)
 
 list(APPEND CMAKE_MODULE_PATH ${CMAKE_CURRENT_SOURCE_DIR})
@@ -66,4 +68,6 @@ target_link_libraries(Utility
     fmt::fmt
 )
 
-add_subdirectory(test)
+if (BUILD_TESTING AND UTILITY_Tests)
+    add_subdirectory(test)
+endif()

@@ -12,12 +12,12 @@
 // #define ENABLE_TRACE
 
 #ifdef ENABLE_TRACE
-#define TRACE_FUNC() auto tracer = Tril::ChromeTracing::StackTracer::Function();
-#define TRACE_FUNC_ARGS(args) auto tracer = Tril::ChromeTracing::StackTracer::Function(args);
-#define TRACE_LAMBDA(name) auto tracer = Tril::ChromeTracing::StackTracer::Lambda(name);
-#define TRACE_LAMBDA_ARGS(name, args) auto tracer = Tril::ChromeTracing::StackTracer::Lambda(name, args);
-#define TRACE_SCOPE(name) auto tracer = Tril::ChromeTracing::StackTracer::Scope(name);
-#define TRACE_SCOPE_ARGS(name, args) auto tracer = Tril::ChromeTracing::StackTracer::Scope(name, args);
+#define TRACE_FUNC() auto tracer = util::ChromeTracing::StackTracer::Function();
+#define TRACE_FUNC_ARGS(args) auto tracer = util::ChromeTracing::StackTracer::Function(args);
+#define TRACE_LAMBDA(name) auto tracer = util::ChromeTracing::StackTracer::Lambda(name);
+#define TRACE_LAMBDA_ARGS(name, args) auto tracer = util::ChromeTracing::StackTracer::Lambda(name, args);
+#define TRACE_SCOPE(name) auto tracer = util::ChromeTracing::StackTracer::Scope(name);
+#define TRACE_SCOPE_ARGS(name, args) auto tracer = util::ChromeTracing::StackTracer::Scope(name, args);
 #else
 #define TRACE_FUNC()
 #define TRACE_FUNC_ARGS(args)
@@ -27,7 +27,7 @@
 #define TRACE_SCOPE_ARGS(name, args)
 #endif
 
-namespace Tril {
+namespace util {
 
 /**
  * @brief The ChromeTracing class allows the creation of log files that can be
@@ -132,6 +132,6 @@ private:
     static void WriteToFile(std::string fileName, bool append = false);
 };
 
-} // namespace Tril
+} // namespace util
 
 #endif // CHROMETRACING_H
