@@ -80,17 +80,19 @@ public:
     }
 
     template<typename NumericType>
+    requires std::is_integral_v<NumericType>
     static NumericType Number(NumericType min, NumericType max)
     {
-        if constexpr (std::is_integral<NumericType>::value) {
-            std::uniform_int_distribution<NumericType> distribution(min, max);
-            return Generate(distribution);
-        } else if constexpr (std::is_floating_point<NumericType>::value) {
-            std::uniform_real_distribution<NumericType> distribution(min, std::nextafter(max, std::numeric_limits<NumericType>::max()));
-            return Generate(distribution);
-        } else {
-            static_assert(std::is_floating_point<NumericType>::value, "Random::Number requires an integral OR floating point number type to work.");
-        }
+        std::uniform_int_distribution<NumericType> distribution(min, max);
+        return Generate(distribution);
+    }
+
+    template<typename NumericType>
+    requires std::is_floating_point_v<NumericType>
+    static NumericType Number(NumericType min, NumericType max)
+    {
+        std::uniform_real_distribution<NumericType> distribution(min, std::nextafter(max, std::numeric_limits<NumericType>::max()));
+        return Generate(distribution);
     }
 
     template<typename NumericType>
@@ -147,20 +149,27 @@ public:
     }
 
     template<typename NumericType>
+    requires std::is_integral_v<NumericType>
     static std::vector<NumericType> Numbers(typename std::vector<NumericType>::size_type count, NumericType min, NumericType max)
     {
         std::vector<NumericType> rands;
         rands.reserve(count);
 
-        if constexpr (std::is_integral<NumericType>::value) {
-            std::uniform_int_distribution<NumericType> distribution(min, max);
-            std::generate_n(std::back_inserter(rands), count, [&](){ return Generate(distribution); });
-        } else if constexpr (std::is_floating_point<NumericType>::value) {
-            std::uniform_real_distribution<NumericType> distribution(min, max);
-            std::generate_n(std::back_inserter(rands), count, [&](){ return Generate(distribution); });
-        } else {
-            static_assert(std::is_floating_point<NumericType>::value, "Random::Numbers requires an integral OR floating point number type to work.");
-        }
+        std::uniform_int_distribution<NumericType> distribution(min, max);
+        std::generate_n(std::back_inserter(rands), count, [&](){ return Generate(distribution); });
+
+        return rands;
+    }
+
+    template<typename NumericType>
+    requires std::is_floating_point_v<NumericType>
+    static std::vector<NumericType> Numbers(typename std::vector<NumericType>::size_type count, NumericType min, NumericType max)
+    {
+        std::vector<NumericType> rands;
+        rands.reserve(count);
+
+        std::uniform_real_distribution<NumericType> distribution(min, max);
+        std::generate_n(std::back_inserter(rands), count, [&](){ return Generate(distribution); });
 
         return rands;
     }

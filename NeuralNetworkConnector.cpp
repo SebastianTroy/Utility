@@ -21,7 +21,7 @@ NeuralNetworkConnector::NeuralNetworkConnector(unsigned inputs, unsigned outputs
      * Creates a bunch of 1:1 connections between inputs and outputs. The larger
      * of inputs or outputs will therefore have some unconnected nodes.
      */
-    util::IterateBoth<size_t, size_t>(inputIndexes, outputIndexes, [&](const size_t& in, const size_t& out)
+    util::IterateBoth(inputIndexes, outputIndexes, [&](const size_t& in, const size_t& out)
     {
         // set the weight of an input to an output to 1 so it is a "direct passthrough" connection
         weights_.at(in).at(out) = 1.0;
@@ -41,9 +41,9 @@ void NeuralNetworkConnector::ConfigureJsonSerialisationHelper(util::JsonSerialis
 void NeuralNetworkConnector::PassForward(const std::vector<double>& inputValues, std::vector<double>& outputValues)
 {
     assert(inputValues.size() == weights_.size() && outputValues.size() == weights_.at(0).size());
-    util::IterateBoth<double, std::vector<double>>(inputValues, weights_, [&outputValues](const double& input, const std::vector<double>& inputWeights) -> void
+    util::IterateBoth(inputValues, weights_, [&outputValues](const double& input, const std::vector<double>& inputWeights) -> void
     {
-        util::IterateBoth<double, double>(inputWeights, outputValues, [&input](const double& inputWeight, double& output) -> void
+        util::IterateBoth(inputWeights, outputValues, [&input](const double& inputWeight, double& output) -> void
         {
             output += input * inputWeight;
         });

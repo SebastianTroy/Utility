@@ -12,40 +12,17 @@
 #include <iostream>
 #include <vector>
 
-///**
-// * fmt helper for printing anything iterable containing formattable items
-// */
-//template<Iterable Container>
-//struct fmt::formatter<Container> : fmt::formatter<typename Container::value_type>
-//{
-//    template <typename FormatContext>
-//    auto format(const Container& container, FormatContext& context)
-//    {
-//        auto&& out= context.out();
-//        format_to(out, "{{");
-
-//        bool first = true;
-//        for (const auto& item : container) {
-//            if (!first) {
-//                first = false;
-//            } else {
-//                format_to(out, ", ");
-//            }
-//            fmt::formatter<typename Container::value_type>::format(item, context);
-//        }
-
-//        return format_to(out, "}}");
-//    }
-//};
-
 /**
- * fmt helper for printing std::vectors containing formattable items
+ * fmt helper for printing almost anything iterable containing formattable items
+ *
+ * Containers of char are excluded to prevent clashes with string types
  */
-template<typename ValueType>
-struct fmt::formatter<std::vector<ValueType>> : fmt::formatter<ValueType>
+template<typename Container>
+requires std::ranges::range<Container> && (!std::is_same_v<typename Container::value_type, char>)
+struct fmt::formatter<Container> : fmt::formatter<typename Container::value_type>
 {
     template <typename FormatContext>
-    auto format(const std::vector<ValueType>& container, FormatContext& context)
+    auto format(const Container& container, FormatContext& context)
     {
         auto&& out= context.out();
         format_to(out, "{{");
@@ -57,7 +34,7 @@ struct fmt::formatter<std::vector<ValueType>> : fmt::formatter<ValueType>
             } else {
                 format_to(out, ", ");
             }
-            fmt::formatter<ValueType>::format(item, context);
+            fmt::formatter<typename Container::value_type>::format(item, context);
         }
 
         return format_to(out, "}}");
@@ -79,19 +56,19 @@ std::ostream& operator<<(std::ostream& ostr, const std::pair<T1, T2>& pair)
 template<typename KeyType, typename MappedType>
 std::ostream& operator<<(std::ostream& ostr, const std::map<KeyType, MappedType>& map)
 {
-        ostr << "{";
+    ostr << "{";
 
-        bool first = true;
-        for (const auto& item : map) {
-            if (!first) {
-                first = false;
-            } else {
-                ostr << ", ";
-            }
-            ostr << item;
+    bool first = true;
+    for (const auto& item : map) {
+        if (!first) {
+            first = false;
+        } else {
+            ostr << ", ";
         }
+        ostr << item;
+    }
 
-        return ostr << "}";
+    return ostr << "}";
 }
 
 /**
@@ -100,19 +77,19 @@ std::ostream& operator<<(std::ostream& ostr, const std::map<KeyType, MappedType>
 template<typename ValueType>
 std::ostream& operator<<(std::ostream& ostr, const std::vector<ValueType>& values)
 {
-        ostr << "{";
+    ostr << "{";
 
-        bool first = true;
-        for (const auto& item : values) {
-            if (!first) {
-                first = false;
-            } else {
-                ostr << ", ";
-            }
-            ostr << item;
+    bool first = true;
+    for (const auto& item : values) {
+        if (!first) {
+            first = false;
+        } else {
+            ostr << ", ";
         }
+        ostr << item;
+    }
 
-        return ostr << "}";
+    return ostr << "}";
 }
 
 /**

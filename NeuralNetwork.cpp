@@ -216,7 +216,7 @@ NeuralNetwork::Layer NeuralNetwork::CreatePassThroughLayer(size_t width)
 std::vector<NeuralNetwork::Layer> NeuralNetwork::CopyLayers() const
 {
     std::vector<Layer> copy(layers_.size(), Layer{});
-    util::IterateBoth<Layer, Layer>(layers_, copy, [](const Layer& origLayer, Layer& copyLayer)
+    util::IterateBoth(layers_, copy, [](const Layer& origLayer, Layer& copyLayer)
     {
         copyLayer.reserve(origLayer.size());
         for (const Node& origNode : origLayer ) {

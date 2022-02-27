@@ -75,8 +75,6 @@ namespace {
 
 TEST_CASE("Simple Types", "[json]")
 {
-    REQUIRE(First == Last);
-
     RunTest(std::numeric_limits<int>::lowest());
     RunTest(std::numeric_limits<int>::min());
     RunTest(42);

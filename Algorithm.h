@@ -1,15 +1,21 @@
 #ifndef ALGORITHM_H
 #define ALGORITHM_H
 
-#include <vector>
 #include <functional>
 #include <cmath>
+#include <ranges>
 #include <cstdint>
 #include <assert.h>
 
 namespace util {
-template <typename T1, typename T2>
-void IterateBoth(std::vector<T1>& a, std::vector<T2>& b, std::function<void(T1& a, T2& b)>&& action)
+
+template <typename T1, typename T2, typename Function>
+requires std::ranges::range<T1>
+      && std::ranges::range<T2>
+      && (!std::is_const_v<T1>)
+      && (!std::is_const_v<T2>)
+      && std::invocable<Function, typename T1::value_type&, typename T2::value_type&>
+void IterateBoth(T1& a, T2& b, Function&& action)
 {
     auto aIter = a.begin();
     auto bIter = b.begin();
@@ -18,18 +24,12 @@ void IterateBoth(std::vector<T1>& a, std::vector<T2>& b, std::function<void(T1& 
     }
 }
 
-template <typename T1, typename T2>
-void IterateBoth(const std::vector<T1>& a, const std::vector<T2>& b, std::function<void(const T1& a, const T2& b)>&& action)
-{
-    auto aIter = a.cbegin();
-    auto bIter = b.cbegin();
-    for (; aIter != a.cend() && bIter != b.cend() ; ++aIter, ++bIter) {
-        action(*aIter, *bIter);
-    }
-}
-
-template <typename T1, typename T2>
-void IterateBoth(const std::vector<T1>& a, std::vector<T2>& b, std::function<void(const T1& a, T2& b)>&& action)
+template <typename T1, typename T2, typename Function>
+requires std::ranges::range<T1>
+      && std::ranges::range<T2>
+      && (!std::is_const_v<T2>)
+      && std::invocable<Function, const typename T1::value_type&, typename T2::value_type&>
+void IterateBoth(const T1& a, T2& b, Function&& action)
 {
     auto aIter = a.cbegin();
     auto bIter = b.begin();
@@ -38,8 +38,12 @@ void IterateBoth(const std::vector<T1>& a, std::vector<T2>& b, std::function<voi
     }
 }
 
-template <typename T1, typename T2>
-void IterateBoth(std::vector<T1>& a, const std::vector<T2>& b, std::function<void(T1& a, const T2& b)>&& action)
+template <typename T1, typename T2, typename Function>
+requires std::ranges::range<T1>
+      && std::ranges::range<T2>
+      && (!std::is_const_v<T1>)
+      && std::invocable<Function, typename T1::value_type&, const typename T2::value_type&>
+void IterateBoth(T1& a, const T2& b, Function&& action)
 {
     auto aIter = a.begin();
     auto bIter = b.cbegin();
@@ -48,42 +52,15 @@ void IterateBoth(std::vector<T1>& a, const std::vector<T2>& b, std::function<voi
     }
 }
 
-template <typename T1, typename T2, size_t LEN>
-void IterateBoth(std::array<T1, LEN>& a, std::array<T2, LEN>& b, std::function<void(T1& a, T2& b)>&& action)
+template <typename T1, typename T2, typename Function>
+requires std::ranges::range<T1>
+      && std::ranges::range<T2>
+      && std::invocable<Function, const typename T1::value_type&, const typename T2::value_type&>
+void IterateBoth(const T1& a, const T2& b, Function&& action)
 {
-    auto aIter = a.begin();
+    auto aIter = a.cbegin();
     auto bIter = b.cbegin();
-    for (; aIter != a.end() && bIter != b.cend() ; ++aIter, ++bIter) {
-        action(*aIter, *bIter);
-    }
-}
-
-template <typename T1, typename T2, size_t LEN>
-void IterateBoth(const std::array<T1, LEN>& a, const std::array<T2, LEN>& b, std::function<void(const T1& a, const T2& b)>&& action)
-{
-    auto aIter = a.begin();
-    auto bIter = b.cbegin();
-    for (; aIter != a.end() && bIter != b.cend() ; ++aIter, ++bIter) {
-        action(*aIter, *bIter);
-    }
-}
-
-template <typename T1, typename T2, size_t LEN>
-void IterateBoth(const std::array<T1, LEN>& a, std::array<T2, LEN>& b, std::function<void(const T1& a, T2& b)>&& action)
-{
-    auto aIter = a.begin();
-    auto bIter = b.cbegin();
-    for (; aIter != a.end() && bIter != b.cend() ; ++aIter, ++bIter) {
-        action(*aIter, *bIter);
-    }
-}
-
-template <typename T1, typename T2, size_t LEN>
-void IterateBoth(std::array<T1, LEN>& a, const std::array<T2, LEN>& b, std::function<void(T1& a, const T2& b)>&& action)
-{
-    auto aIter = a.begin();
-    auto bIter = b.cbegin();
-    for (; aIter != a.end() && bIter != b.cend() ; ++aIter, ++bIter) {
+    for (; aIter != a.cend() && bIter != b.cend() ; ++aIter, ++bIter) {
         action(*aIter, *bIter);
     }
 }
@@ -93,13 +70,16 @@ void IterateBoth(std::array<T1, LEN>& a, const std::array<T2, LEN>& b, std::func
  * that each element is equal to the element in the other container
  * at the same index.
  */
-template <typename T>
-bool CompareContainers(const std::vector<T>& a, const std::vector<T>& b)
+template <typename T1, typename T2>
+requires std::ranges::range<T1>
+      && std::ranges::range<T2>
+      && std::is_same_v<std::decay_t<typename T1::value_type>, std::decay_t<typename T2::value_type>>
+bool CompareContainers(const T1& a, const T2& b)
 {
     return a.size() == b.size() && [&]() -> bool
     {
         bool match = true;
-        IterateBoth<T, T>(a, b, [&](const T& a, const T& b)
+        IterateBoth(a, b, [&](const typename T1::value_type& a, const typename T2::value_type& b)
         {
             match = match && a == b;
         });

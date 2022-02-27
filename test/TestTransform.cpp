@@ -15,7 +15,7 @@ inline void ComparePoints(const Point& a, const Point& b)
 
 inline void CompareValues(const Transform& a, const Transform& b)
 {
-    util::IterateBoth<double, double, 9>(a.GetValues(), b.GetValues(), [](const double& a, const double& b)
+    util::IterateBoth(a.GetValues(), b.GetValues(), [](const double& a, const double& b)
     {
         REQUIRE_THAT(a, Catch::Matchers::WithinAbs(b, 0.0000000000001));
     });

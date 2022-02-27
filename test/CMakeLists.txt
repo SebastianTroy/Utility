@@ -11,16 +11,18 @@ add_executable(Tests)
 target_sources(Tests
     PUBLIC
     main.cpp
+    TestAlgorithm.cpp
+    TestAutoClearingContainer.cpp
     TestCircularBuffer.cpp
     TestJsonHelpers.cpp
-    TestJsonSerialisationHelper.h
-    TestJsonSerialisationHelper.cpp
     TestJsonPolymorphicSerialisationHelper.h
     TestJsonPolymorphicSerialisationHelper.cpp
-    TestShape.cpp
+    TestJsonSerialisationHelper.h
+    TestJsonSerialisationHelper.cpp
     TestQuadTree.cpp
     TestRangeConverter.cpp
     TestRollingStatistics.cpp
+    TestShape.cpp
     TestTransform.cpp
     TestWindowedFrequencyStatistics.cpp
     TestWindowedRollingStatistics.cpp
