@@ -13,10 +13,10 @@ target_sources(Tests
     main.cpp
     TestCircularBuffer.cpp
     TestJsonHelpers.cpp
-    testJsonSerialisationHelper.h
-    testJsonSerialisationHelper.cpp
-    testJsonPolymorphicSerialisationHelper.h
-    testJsonPolymorphicSerialisationHelper.cpp
+    TestJsonSerialisationHelper.h
+    TestJsonSerialisationHelper.cpp
+    TestJsonPolymorphicSerialisationHelper.h
+    TestJsonPolymorphicSerialisationHelper.cpp
     TestShape.cpp
     TestQuadTree.cpp
     TestRangeConverter.cpp
