@@ -20,6 +20,7 @@ target_sources(Tests
     TestJsonSerialisationHelper.h
     TestJsonSerialisationHelper.cpp
     TestQuadTree.cpp
+    TestRandom.cpp
     TestRangeConverter.cpp
     TestRollingStatistics.cpp
     TestShape.cpp

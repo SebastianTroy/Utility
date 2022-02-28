@@ -2,6 +2,7 @@
 #define RANDOM_H
 
 #include "Shape.h"
+#include "Algorithm.h"
 
 #include <random>
 #include <limits>
@@ -215,6 +216,36 @@ public:
     static void Shuffle(Container& toShuffle)
     {
         std::shuffle(std::begin(toShuffle), std::end(toShuffle), entropy_);
+    }
+
+    /**
+     * Returns a Container with max(a.size, b.size) items. For each index it
+     * will contain a copy of either a[index] or b[index]. Once the max index of
+     * the shortest container has been reached, all remaining items are copied
+     * from the longer container.
+     */
+    template<typename Container>
+    static Container Merge(const Container& a, const Container& b)
+    {
+        Container c;
+        c.reserve(std::max(a.size(), b.size()));
+
+        util::IterateBoth(a, b, [&c](const auto& a, const auto& b)
+        {
+            c.push_back(Boolean() ? a : b);
+        });
+
+        if (a.size() > b.size()) {
+            auto remainingItemsIter = a.cbegin();
+            std::advance(remainingItemsIter, a.size() - b.size());
+            std::copy(remainingItemsIter, std::cend(a), std::back_inserter(c));
+        } else if (b.size() > a.size()) {
+            auto remainingItemsIter = b.cbegin();
+            std::advance(remainingItemsIter, b.size() - a.size());
+            std::copy(remainingItemsIter, std::cend(b), std::back_inserter(c));
+        }
+
+        return c;
     }
 
     template<typename Container>

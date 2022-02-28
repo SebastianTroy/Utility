@@ -112,7 +112,7 @@ static T Deserialise(const nlohmann::json& serialised)
 }
 
 template <typename T>
-requires std::ranges::range<T> && (!std::is_same_v<T, std::string>) && requires (T c, typename T::value_type v) { c.insert(v); } && (!requires (T c, typename T::value_type v) { c.push_back(v); })
+requires std::ranges::range<T> && (!std::same_as<T, std::string>) && requires (T c, typename T::value_type v) { c.insert(v); }
 static T Deserialise(const nlohmann::json& serialised)
 {
     T items;
@@ -123,7 +123,7 @@ static T Deserialise(const nlohmann::json& serialised)
 }
 
 template <typename T>
-requires std::ranges::range<T> && (!std::is_same_v<T, std::string>) && requires (T c, typename T::value_type v) { c.push_back(v); }
+requires std::ranges::range<T> && (!std::same_as<T, std::string>) && requires (T c, typename T::value_type v) { c.push_back(v); }
 static T Deserialise(const nlohmann::json& serialised)
 {
     T items;
