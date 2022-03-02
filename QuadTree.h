@@ -9,14 +9,22 @@
 #include <functional>
 #include <algorithm>
 #include <cmath>
+#include <concepts>
 
 namespace util {
+
+template <typename T>
+concept QuadTreeCompatible = requires (T t) {
+    { t.GetLocation() } -> std::same_as<const Point&>;
+    { t.GetCollide() } -> Collidable;
+};
 
 /**
  * @brief Not really an iterator so much as a convinience class encapsulating
  * various iteration options and associated helpers.
  */
 template <typename T>
+requires QuadTreeCompatible<T>
 class QuadTreeIterator {
 public:
     QuadTreeIterator(std::function<void(const std::shared_ptr<T>& item)>&& action)
@@ -32,11 +40,12 @@ public:
         quadFilter_ = std::move(filter);
         return *this;
     }
-    QuadTreeIterator& SetQuadFilter(const Rect& r)
+    template<Collidable C>
+    QuadTreeIterator& SetQuadFilter(const C& c)
     {
         SetQuadFilter([=](const Rect& quadArea)
         {
-            return Collides(r, quadArea);
+            return Collides(c, quadArea);
         });
         return *this;
     }
@@ -45,39 +54,13 @@ public:
         itemFilter_ = std::move(filter);
         return *this;
     }
-    QuadTreeIterator& SetItemFilter(const Point& p)
+    template<Collidable C>
+    QuadTreeIterator& SetItemFilter(const C& c)
     {
         SetItemFilter([=](const T& item)
         {
-            TRACE_LAMBDA("ItemFilter<Point>")
-            return Collides(p, item.GetCollide());
-        });
-        return *this;
-    }
-    QuadTreeIterator& SetItemFilter(const Line& l)
-    {
-        SetItemFilter([=](const T& item)
-        {
-            TRACE_LAMBDA("ItemFilter<Line>")
-            return Collides(l, item.GetCollide());
-        });
-        return *this;
-    }
-    QuadTreeIterator& SetItemFilter(const Circle& c)
-    {
-        SetItemFilter([=](const T& item)
-        {
-            TRACE_LAMBDA("ItemFilter<Circle>")
+            TRACE_LAMBDA("ItemFilter<Collidable>")
             return Collides(c, item.GetCollide());
-        });
-        return *this;
-    }
-    QuadTreeIterator& SetItemFilter(const Rect& r)
-    {
-        SetItemFilter([=](const T& item)
-        {
-            TRACE_LAMBDA("ItemFilter<Rect>")
-            return Collides(r, item.GetCollide());
         });
         return *this;
     }
@@ -98,6 +81,7 @@ public:
  * various iteration options and associated helpers.
  */
 template <typename T>
+requires QuadTreeCompatible<T>
 class ConstQuadTreeIterator {
 public:
     ConstQuadTreeIterator(std::function<void(const T& item)>&& action)
@@ -112,11 +96,12 @@ public:
         quadFilter_ = std::move(filter);
         return *this;
     }
-    ConstQuadTreeIterator& SetQuadFilter(const Rect& r)
+    template<Collidable C>
+    ConstQuadTreeIterator& SetQuadFilter(const C& c)
     {
         SetQuadFilter([=](const Rect& quadArea)
         {
-            return Collides(r, quadArea);
+            return Collides(c, quadArea);
         });
         return *this;
     }
@@ -125,35 +110,12 @@ public:
         itemFilter_ = std::move(filter);
         return *this;
     }
-    ConstQuadTreeIterator& SetItemFilter(const Point& p)
-    {
-        SetItemFilter([=](const T& item)
-        {
-            return Collides(p, item.GetCollide());
-        });
-        return *this;
-    }
-    ConstQuadTreeIterator& SetItemFilter(const Line& l)
-    {
-        SetItemFilter([=](const T& item)
-        {
-            return Collides(l, item.GetCollide());
-        });
-        return *this;
-    }
-    ConstQuadTreeIterator& SetItemFilter(const Circle& c)
+    template<Collidable C>
+    ConstQuadTreeIterator& SetItemFilter(const C& c)
     {
         SetItemFilter([=](const T& item)
         {
             return Collides(c, item.GetCollide());
-        });
-        return *this;
-    }
-    ConstQuadTreeIterator& SetItemFilter(const Rect& r)
-    {
-        SetItemFilter([=](const T& item)
-        {
-            return Collides(r, item.GetCollide());
         });
         return *this;
     }
@@ -164,8 +126,12 @@ public:
 };
 
 template <typename T>
+requires QuadTreeCompatible<T>
 class QuadTree {
 public:
+    using Iter_t = QuadTreeIterator<T>;
+    using ConstIter_t = ConstQuadTreeIterator<T>;
+
     QuadTree(const Rect& startArea, size_t itemCountTarget, size_t itemCountLeeway, double minQuadDiameter)
         : root_(std::make_shared<Quad>(nullptr, startArea))
         , rootExpandedCount_(0)
@@ -210,7 +176,6 @@ public:
         }
     }
 
-
     void ForEachQuad(const std::function<void(const Rect& area)>& action) const
     {
         TRACE_FUNC()
@@ -218,6 +183,18 @@ public:
         {
             action(quad.rect_);
         });
+    }
+
+    QuadTreeIterator<T> Iterator(std::function<void(const std::shared_ptr<T>& item)>&& action)
+    {
+        TRACE_FUNC()
+        return QuadTreeIterator<T>(std::move(action));
+    }
+
+    ConstQuadTreeIterator<T> ConstIterator(std::function<void(const T& item)>&& action) const
+    {
+        TRACE_FUNC()
+        return ConstQuadTreeIterator<T>(std::move(action));
     }
 
     /**
@@ -299,7 +276,6 @@ public:
                 }
             }
         }, iter.quadFilter_);
-
 
         // Let the very first non-const iteration deal with all of the re-balancing
         if (!wasIteratingAlready) {

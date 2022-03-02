@@ -272,6 +272,12 @@ inline bool Contains(const Rect& r, const Circle& c)
     return Contains(r, RectFromCircle(c));
 }
 
+template <typename T>
+concept Collidable = std::same_as<std::decay_t<T>, Circle>
+                  || std::same_as<std::decay_t<T>, Rect>
+                  || std::same_as<std::decay_t<T>, Line>
+                  || std::same_as<std::decay_t<T>, Point>;
+
 inline bool Collides(const Line& l1, const Line& l2)
 {
     auto& [x1, y1] = l1.a;
