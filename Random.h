@@ -269,6 +269,15 @@ public:
     }
 
     template<typename Container>
+    static void ForNItems(Container& container, size_t itemCount, const std::function<void(typename Container::value_type& item)>& action)
+    {
+        assert(!container.empty());
+        for (size_t count = 0; count < itemCount; ++count) {
+            std::invoke(action, Item(container));
+        }
+    }
+
+    template<typename Container>
     static void ForNItems(const Container& container, size_t itemCount, const std::function<void(const typename Container::value_type& item)>& action)
     {
         assert(!container.empty());

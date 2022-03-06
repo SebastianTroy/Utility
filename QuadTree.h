@@ -303,7 +303,7 @@ public:
         }
     }
 
-    void SetItemCountTaregt(unsigned target)
+    void SetItemCountTarget(unsigned target)
     {
         TRACE_FUNC()
         itemCountTarget_ = target;

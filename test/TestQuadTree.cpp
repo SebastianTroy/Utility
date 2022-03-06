@@ -207,6 +207,20 @@ TEST_CASE("QuadTree", "[container]")
             }
         }
     }
+    SECTION("Items very close to zero")
+    {
+        Rect area{ 0, 0, 10, 10 };
+        size_t targetCount = 1;
+        size_t countLeeway = 0;
+        double minQuadSize = 1.0;
+
+        SECTION("Single item - close to zero")
+        {
+            QuadTree<TestType> tree(area, targetCount, countLeeway, minQuadSize);
+            tree.Insert(std::make_shared<TestType>(Point{ 0, 1.737874539832964e-308}));
+            REQUIRE(tree.Validate());
+        }
+    }
 
     SECTION("Contract root")
     {
@@ -497,5 +511,56 @@ TEST_CASE("QuadTree", "[container]")
         {
             REQUIRE(tree.Validate());
         }));
+    }
+
+    SECTION("Simulated Usecase")
+    {
+        const Rect area{ 0, 0, 10, 10 };
+        const double minQuadSize = 1.0;
+        const size_t itemCount = 100;
+        QuadTree<TestType> tree(area, 25, 5, minQuadSize);
+
+        for (size_t i = 0; i < itemCount; ++i) {
+            tree.Insert(std::make_shared<TestType>(Random::PointIn(area)));
+        }
+
+        for (int i = 0; i < 1000; ++i) {
+            tree.ForEachItem(tree.Iterator([&](std::shared_ptr<TestType> item)
+            {
+                item->location_.x += Random::Number(-1.0, 1.0);
+                item->location_.y += Random::Number(-1.0, 1.0);
+                item->collide_.x = item->location_.x;
+                item->collide_.y = item->location_.y;
+            }));
+
+            unsigned removedCount = 0;
+            tree.RemoveIf([&](const TestType& item) -> bool
+            {
+                bool remove = !Contains(area, item.location_);
+                if (remove) {
+                    ++removedCount;
+                }
+                return remove;
+            });
+
+            for (size_t i = 0; i < removedCount; ++i) {
+                tree.Insert(std::make_shared<TestType>(Point{ 0, 0 }));
+            }
+
+            if (i % 10 == 0) {
+                tree.SetItemCountTarget(Random::Number(1, 100));
+                tree.SetItemCountLeeway(Random::Number(0, 100));
+            }
+        }
+
+        REQUIRE(tree.Size() == itemCount);
+        REQUIRE(tree.Validate());
+
+        tree.RemoveIf([](const TestType& item) -> bool
+        {
+            return item.location_.y < 5;
+        });
+
+        REQUIRE(tree.Size() < itemCount);
     }
 }

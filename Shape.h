@@ -106,6 +106,11 @@ inline Point operator-(const Point& a, const Point& b)
     return { a.x - b.x, a.y - b.y };
 }
 
+inline Point operator*(const Point& p, double scale)
+{
+    return { p.x * scale, p.y * scale };
+}
+
 inline double GetDistanceSquare(const Point& a, const Point& b)
 {
     // Keep this func as sqrt is expensive, and isn't always needed
