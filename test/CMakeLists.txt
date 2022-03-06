@@ -42,6 +42,6 @@ target_link_libraries(Tests
 )
 
 add_custom_command(TARGET Tests POST_BUILD
-    COMMAND ${CMAKE_BINARY_DIR}/test/Tests
+    COMMAND Tests
     COMMENT "Running Tests..."
 )
