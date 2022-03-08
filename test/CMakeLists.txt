@@ -41,7 +41,9 @@ target_link_libraries(Tests
     Utility
 )
 
-add_custom_command(TARGET Tests POST_BUILD
-    COMMAND Tests
-    COMMENT "Running Tests..."
-)
+if (BUILD_TESTING AND UTILITY_AutorunTests)
+    add_custom_command(TARGET Tests POST_BUILD
+        COMMAND Tests
+        COMMENT "Running Tests..."
+    )
+endif()
