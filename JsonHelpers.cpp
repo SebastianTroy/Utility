@@ -53,7 +53,7 @@ bool JsonHelpers::ValidateJsonArray(const json& array, json::value_t valueType, 
             }
         } else {
             for (const auto& item : array) {
-                if (!MatchType(item.type(), valueType)) {
+                if (!MatchType(valueType, item.type())) {
                     valid = false;
                     break;
                 }

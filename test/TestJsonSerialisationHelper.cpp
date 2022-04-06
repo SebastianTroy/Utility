@@ -1,4 +1,4 @@
-#include "testJsonSerialisationHelper.h"
+#include "TestJsonSerialisationHelper.h"
 
 #include <catch2/catch.hpp>
 

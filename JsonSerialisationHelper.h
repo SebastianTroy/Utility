@@ -21,10 +21,11 @@ namespace util {
  *
  * To make a type support serialisation in this way, you need to implement a
  * single static function:
+ *
  *    static void ConfigureJsonSerialisationHelper(util::JsonSerialisationHelper<T>& helper)
  *    {
- *        helper.RegisterVariable("UniqueKey_1", &T::memberVariable1_);
- *        helper.RegisterVariable("UniqueKey_2", &T::memberVariable2_);
+ *        helper.RegisterVariable("UniqueKey_3", &T::memberVariable2_);
+ *        helper.RegisterVariable("UniqueKey_4", &T::memberVariable3_);
  *        ...
  *    }
  *

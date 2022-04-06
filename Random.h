@@ -262,14 +262,13 @@ public:
     {
         assert(!container.empty());
         auto iter = std::cbegin(container);
-        // THIS SHOULD WORK WITH `unsigned long long` BUT IT DOESN'T (gives undefined behaviour and agressive code deletion in release mode!)
-        // FIXME add in a compiler version specific fix for this, seems to be an old GCC bug
-        std::advance(iter, Random::Number<unsigned long>(0, container.size() - 1));
+        std::advance(iter, Random::Number(typename Container::size_type{ 0 }, container.size() - 1));
         return *iter;
     }
 
-    template<typename Container>
-    static void ForNItems(Container& container, size_t itemCount, const std::function<void(typename Container::value_type& item)>& action)
+    template<typename Container, typename Action>
+    requires std::is_invocable_v<Action, typename Container::value_type>
+    static void ForNItems(Container& container, size_t itemCount, const Action& action)
     {
         assert(!container.empty());
         for (size_t count = 0; count < itemCount; ++count) {
@@ -277,8 +276,9 @@ public:
         }
     }
 
-    template<typename Container>
-    static void ForNItems(const Container& container, size_t itemCount, const std::function<void(const typename Container::value_type& item)>& action)
+    template<typename Container, typename Action>
+    requires std::is_invocable_v<Action, const typename Container::value_type>
+    static void ForNItems(const Container& container, size_t itemCount, const Action& action)
     {
         assert(!container.empty());
         for (size_t count = 0; count < itemCount; ++count) {

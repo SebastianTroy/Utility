@@ -1,10 +1,6 @@
 #ifndef JSONPOLYMORPHICSERIALISATIONHELPER_H
 #define JSONPOLYMORPHICSERIALISATIONHELPER_H
 
-// basically cannot do it all in one class (was getting messy anyway!)
-
-// move the polymorphic stuff into here, should be minimal and neat and tidy, dint forget to test it
-
 #include <JsonSerialisationHelper.h>
 
 #include <nlohmann/json.hpp>
@@ -15,17 +11,102 @@
 
 namespace util {
 
+/**
+ * This type allows polymorphic classes to be easily serialised, deserialised,
+ * and validated.
+ *
+ * The aim here is to avoid massive code duplication of the Serialise,
+ * Deserialise and Validate functions, both between functions in the same Type
+ * and between different types that implement those functions.
+ *
+ * To make a type support serialisation in this way, you need to implementthe
+ * following public functions:
+ *
+ *    virtual std::string TypeName() const
+ *    {
+ *        return std::string(util::TypeName<T>());
+ *    }
+ *
+ *    static void ConfigureJsonSerialisationHelper(util::JsonSerialisationHelper<T>& helper)
+ *    {
+ *        helper.RegisterVariable("UniqueKey_1", &T::memberVariable1_);
+ *        helper.RegisterVariable("UniqueKey_2", &T::memberVariable2_);
+ *        ...
+ *    }
+ *
+ * If T is not default constructable, then a constructor will need to be
+ * registered as well as the variables. This can be necessary for initialising
+ * const member variables, or for polymorphic types where the parent type does
+ * not support default construction. Variables used for construction will be
+ * automatically be registered for serialisation and deserialisation, and
+ * therefore don't also need to be registered using RegisterVariable.
+ *
+ * Where our constructor is `T(ParameterType_1 p1, ParameterType_2 p2, ...)` we
+ * would need to register the following:
+ *
+ * helper.RegisterConstructor(
+ *            helper.CreateParameter<ParameterType_1>("UniqueKey_3", &T::memberVariable3_),
+ *            helper.CreateParameter<ParameterType_2>("UniqueKey_4", [](constT& instance) -> ParameterType_2 { instance.GetValue(); }),
+ *            ...
+ *        );
+ *
+ * If a type has all been correctly registered, the following should be true:
+ *
+ * T instance; // initialised and containing state
+ * T copy = JsonSerialisationHelper::Deserialise(JsonSerialisationHelper::Serialise(instance));
+ * bool success = instance == copy; // should be true
+ *
+ *
+ * Example of use:
+ * ---------------
+ *
+ * class Animal {
+ * public:
+ *     virtual ~Animal() {}
+ *     virtual std::string TypeName() const = 0;
+ * };
+ *
+ * class Cat {
+ * public:
+ *     Cat(Colour furColour) : furColour(furColour) {}
+ *     virtual ~Cat() {}
+ *     std::string TypeName() const override { return std::string(util::TypeName<Cat>()); }
+ *     static void ConfigureJsonSerialisationHelper(util::JsonSerialisationHelper<Cat>& helper)
+ *     {
+ *         helper.RegisterConstructor(
+ *                    helper.CreateParameter<Colour>("Col", &T::furColour),
+ *                );
+ *         helper.RegisterVariable("Age", &T::age);
+ *     }
+ *
+ * private:
+ *     Colour furColour;
+ *     int age;
+ * };
+ *
+ * util::JsonPolymorphicSerialisationHelper<Animal>::template RegisterChildType<Cat>();
+ * // Other types can and should be registerd up front too
+ * util::JsonPolymorphicSerialisationHelper<Animal>::template RegisterChildType<Dog>();
+ * util::JsonPolymorphicSerialisationHelper<Animal>::template RegisterChildType<Pangolin>();
+ *
+ * Animal* c = new Cat(furColour);
+ * Animal* d = new Dog(breed);
+ * Animal* p = new Pangolin(scaleCount);
+ *
+ * nlohmann::json serialised = JsonPolymorphicSerialisationHelper<Animal>::Serialise(*c);
+ * std::shared_ptr<Cat> = JsonPolymorphicSerialisationHelper<Animal>::Deserialise(serialised);
+ */
 template <typename BaseType>
 class JsonPolymorphicSerialisationHelper {
 private:
     /**
-     * For some types, it is desirable to operate with a parent type, rather
-     * than the children types directly. This
+     * An instance of this struct will be created for every registered child
+     * type.
      */
     struct PolymorphicHelper {
     public:
         std::function<std::shared_ptr<BaseType>(const nlohmann::json& serialised)> deserialiser_ = nullptr;
-        std::function<bool(const nlohmann::json& serialisedVariable)> validator_;
+        std::function<bool(const nlohmann::json& serialisedVariable)> validator_ = nullptr;
         std::function<nlohmann::json(const BaseType&)> serialiser_ = nullptr;
     };
 
