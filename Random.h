@@ -267,7 +267,7 @@ public:
     }
 
     template<typename Container, typename Action>
-    requires std::is_invocable_v<Action, typename Container::value_type>
+    requires std::is_invocable_v<Action, typename Container::value_type&>
     static void ForNItems(Container& container, size_t itemCount, const Action& action)
     {
         assert(!container.empty());
@@ -277,7 +277,7 @@ public:
     }
 
     template<typename Container, typename Action>
-    requires std::is_invocable_v<Action, const typename Container::value_type>
+    requires std::is_invocable_v<Action, const typename Container::value_type&>
     static void ForNItems(const Container& container, size_t itemCount, const Action& action)
     {
         assert(!container.empty());

@@ -3,37 +3,30 @@
 #include "MathConstants.h"
 
 Transform::Transform()
-    : Transform(Point{ 0, 0 })
+    : Transform({ 1, 0, 0, 0, 1, 0, 0, 0, 1 })
 {
 }
 
 Transform::Transform(const Transform& other)
-    : position(other.position)
-    , a1(other.a1)
+    : a1(other.a1)
     , a2(other.a2)
-    , a3(position.x)
+    , a3(other.a3)
     , b1(other.b1)
     , b2(other.b2)
-    , b3(position.y)
+    , b3(other.b3)
     , c1(other.c1)
     , c2(other.c2)
     , c3(other.c3)
 {
 }
 
-Transform::Transform(const Point& location)
-    : Transform({ 1, 0, location.x, 0, 1, location.y, 0, 0, 1 })
-{
-}
-
 Transform::Transform(const std::array<double, 9>& values)
-    : position{ values[2], values[5] }
-    , a1(values[0])
+    : a1(values[0])
     , a2(values[1])
-    , a3(position.x)
+    , a3(values[2])
     , b1(values[3])
     , b2(values[4])
-    , b3(position.y)
+    , b3(values[5])
     , c1(values[6])
     , c2(values[7])
     , c3(values[8])
@@ -44,14 +37,55 @@ void Transform::ConfigureJsonSerialisationHelper(util::JsonSerialisationHelper<T
 {
     helper.RegisterVariable("a1", &Transform::a1);
     helper.RegisterVariable("a2", &Transform::a2);
-    helper.RegisterVariable("ab3", &Transform::position);
+    helper.RegisterVariable("a3", &Transform::a3);
 
     helper.RegisterVariable("b1", &Transform::b1);
     helper.RegisterVariable("b2", &Transform::b2);
+    helper.RegisterVariable("b3", &Transform::b3);
 
     helper.RegisterVariable("c1", &Transform::c1);
     helper.RegisterVariable("c2", &Transform::c2);
     helper.RegisterVariable("c3", &Transform::c3);
+}
+
+Transform Transform::Translation(const Point& location)
+{
+    return Transform{}.Translated(location.x, location.y);
+}
+
+Transform Transform::Translation(const double& x, const double& y)
+{
+    return Transform{}.Translated(x, y);
+}
+
+Transform Transform::RotationD(const double& d)
+{
+    return Transform{}.RotateD(d);
+}
+
+Transform Transform::RotationR(const double& r)
+{
+    return Transform{}.RotateR(r);
+}
+
+Transform Transform::ReflectionX(const double& axis)
+{
+    return Transform{}.ReflectX(axis);
+}
+
+Transform Transform::ReflectionY(const double& axis)
+{
+    return Transform{}.ReflectY(axis);
+}
+
+Transform Transform::Reflection(const double& xAxis, const double& yAxis)
+{
+    return Transform{}.ReflectX(xAxis).ReflectY(yAxis);
+}
+
+Transform Transform::Shear(const double& x, const double& y)
+{
+    return Transform{}.ShearX(x).ShearY(y);
 }
 
 Transform Transform::operator*(const Transform& other) const
@@ -109,19 +143,19 @@ std::array<double, 9> Transform::GetValues() const
     return { a1, a2, a3, b1, b2, b3, c1, c2, c3 };
 }
 
-const Point& Transform::GetLocation() const
+Point Transform::GetTranslation() const
 {
-    return position;
+    return { a3, b3 };
 }
 
-const double& Transform::GetX() const
+const double& Transform::GetTranslationX() const
 {
-    return position.x;
+    return a3;
 }
 
-const double& Transform::GetY() const
+const double& Transform::GetTranslationY() const
 {
-    return position.y;
+    return b3;
 }
 
 double Transform::GetScaleX() const
@@ -136,28 +170,25 @@ double Transform::GetScaleY() const
 
 double Transform::GetRotationD() const
 {
-    constexpr double toDegrees = 180.0 / std::numbers::pi;
-    return GetRotationR() * toDegrees;
+    return util::ToDegrees(GetRotationR());
 }
 
 double Transform::GetRotationR() const
 {
-    assert(std::atan(-a2/a1) == std::atan(b1/b2));
-    return std::atan(b1/b2);
+    assert(std::atan2(-a2, a1) == std::atan2(b1, b2));
+    return std::fmod(util::Tau + std::atan2(b1, b2), util::Tau);
 }
 
 void Transform::Map(Point& point) const
 {
-    // TODO this can be optimised greatly, there is no need to do a full matrix multiplication here
-    Transform result = Transform(point) * *this;
-    point = result.GetLocation();
+    Transform result = *this * Transform::Translation(point);
+    point = result.GetTranslation();
 }
 
 const Point Transform::Mapped(const Point& point) const
 {
-    // TODO this can be optimised greatly, there is no need to do a full matrix multiplication here
-    Transform result = Transform(point) * *this;
-    return result.GetLocation();
+    Transform result = *this * Transform::Translation(point);
+    return result.GetTranslation();
 }
 
 Transform Transform::RotatedD(double degrees) const
@@ -216,111 +247,113 @@ Transform Transform::ReflectedY(double axis) const
     return copy;
 }
 
-void Transform::SetLocation(const Point& location)
+Transform& Transform::RotateD(double degrees)
 {
-    position = location;
+    RotateR(util::ToRadians(degrees));
+    return *this;
 }
 
-void Transform::SetRotationD(double degrees)
+Transform& Transform::RotateD(double degrees, const Point& pivot)
 {
-    constexpr double toRadians = std::numbers::pi / 180.0;
-    SetRotationR(degrees * toRadians);
+    RotateR(util::ToRadians(degrees), pivot);
+    return *this;
 }
 
-void Transform::SetRotationR(double radians)
+Transform& Transform::RotateR(double radians)
 {
-    // [  cos(theta), sin(theta), x ]
-    // [ -sin(theta), cos(theta), y ]
-    // [ 0          , 0         , 1 ]
-
-    double sinTheta = std::sin(radians);
-    double cosTheta = std::cos(radians);
-
-    a1 = cosTheta;
-    a2 = sinTheta;
-    b1 = -sinTheta;
-    b2 = cosTheta;
-}
-
-void Transform::RotateD(double degrees)
-{
-    constexpr double toRadians = std::numbers::pi / 180.0;
-    RotateR(degrees * toRadians);
-}
-
-void Transform::RotateD(double degrees, const Point& pivot)
-{
-    Translate(-pivot.x, -pivot.y);
-    RotateD(degrees);
-    Translate(pivot.x, pivot.y);
-}
-
-void Transform::RotateR(double radians)
-{
-    // [  cos(theta), sin(theta), 0 ]
-    // [ -sin(theta), cos(theta), 0 ]
+    // [ cos(theta), -sin(theta), 0 ]
+    // [ sin(theta),  cos(theta), 0 ]
     // [  0         , 0         , 1 ]
 
     double sinTheta = std::sin(radians);
     double cosTheta = std::cos(radians);
 
-    // TODO this can be optimised greatly, there is no need to do a full matrix multiplication here
-    Transform rotation({ cosTheta, sinTheta, 0, -sinTheta, cosTheta, 0, 0, 0, 1 });
+    Transform rotation({ cosTheta, -sinTheta, 0, sinTheta, cosTheta, 0, 0, 0, 1 });
     *this = rotation * *this;
+    return *this;
 }
 
-void Transform::RotateR(double radians, const Point& pivot)
+Transform& Transform::RotateR(double radians, const Point& pivot)
 {
-    double x = a3;
-    double y = b3;
-
-    a3 = 0;
-    b3 = 0;
-
-    // the translation before and after is somehow setting the x, y to zero
-    // in the case of entities where the rotation is happening "in place", could perhaps fix it by setti9ng the rotation instead?
-    // maybe Talk to Tris about this?
-
+    Translate(-pivot);
     RotateR(radians);
-
-    a3 = x;
-    b3 = y;
+    Translate(pivot);
+    return *this;
 }
 
-void Transform::Translate(double xDelta, double yDelta)
+Transform& Transform::Translate(double xDelta, double yDelta)
 {
     // [ 1, 0, x ]
     // [ 0, 1, y ]
     // [ 0, 0, 1 ]
 
-    // TODO this can be optimised greatly, there is no need to do a full matrix multiplication here
     Transform translation({ 1, 0, xDelta, 0, 1, yDelta, 0, 0, 1 });
     *this = translation * *this;
+    return *this;
 }
 
-void Transform::Translate(const Point& delta)
+Transform& Transform::Translate(const Point& delta)
 {
     Translate(delta.x, delta.y);
+    return *this;
 }
 
-void Transform::ReflectX(double axis)
+Transform& Transform::ReflectX()
 {
     // [ 1,  0, 0 ]
     // [ 0, -1, 0 ]
     // [ 0,  0, 1 ]
 
-    // TODO this can be optimised greatly, there is no need to do a full matrix multiplication here
-    Transform translation({ 1, 0, 0, 0, -1, 0, 0, 0, 1 });
-    *this = translation * *this;
+    Transform reflection({ 1, 0, 0, 0, -1, 0, 0, 0, 1 });
+    *this = reflection * *this;
+    return *this;
 }
 
-void Transform::ReflectY(double axis)
+Transform& Transform::ReflectX(double axis)
+{
+    Translate(0, -axis);
+    ReflectX();
+    Translate(0, axis);
+    return *this;
+}
+
+Transform& Transform::ReflectY()
 {
     // [ -1, 0, 0 ]
     // [  0, 1, 0 ]
     // [  0, 0, 1 ]
 
-    // TODO this can be optimised greatly, there is no need to do a full matrix multiplication here
-    Transform translation({ -1, 0, 0, 0, 1, 0, 0, 0, 1 });
-    *this = translation * *this;
+    Transform reflection({ -1, 0, 0, 0, 1, 0, 0, 0, 1 });
+    *this = reflection * *this;
+    return *this;
+}
+
+Transform& Transform::ReflectY(double axis)
+{
+    Translate(-axis, 0);
+    ReflectY();
+    Translate(axis, 0);
+    return *this;
+}
+
+Transform& Transform::ShearX(double factor)
+{
+    // [ 1, F, 0 ]
+    // [ 0, 1, 0 ]
+    // [ 0, 0, 1 ]
+
+    Transform shear({ 1, factor, 0, 0, 1, 0, 0, 0, 1 });
+    *this = shear * *this;
+    return *this;
+}
+
+Transform& Transform::ShearY(double factor)
+{
+    // [ 1, 0, 0 ]
+    // [ F, 1, 0 ]
+    // [ 0, 0, 1 ]
+
+    Transform shear({ 1, 0, 0, factor, 1, 0, 0, 0, 1 });
+    *this = shear * *this;
+    return *this;
 }

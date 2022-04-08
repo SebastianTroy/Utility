@@ -9,15 +9,26 @@
 
 /**
  * Cheatsheet: https://www.alanzucconi.com/2016/02/10/tranfsormation-matrix/
+ *
+ * The main point of this class was for me to learn 2D transformations using a
+ * 3x3 matrix. It in no way represents best practice, or optimal performance.
  */
 struct Transform {
 public:
     Transform();
     Transform(const Transform& other);
-    Transform(const Point& location);
     Transform(const std::array<double, 9>& values);
 
     static void ConfigureJsonSerialisationHelper(util::JsonSerialisationHelper<Transform>& helper);
+
+    static Transform Translation(const Point& location);
+    static Transform Translation(const double& x, const double& y);
+    static Transform RotationD(const double& d); // degrees
+    static Transform RotationR(const double& r); // radians
+    static Transform ReflectionX(const double& axis = 0);
+    static Transform ReflectionY(const double& axis = 0);
+    static Transform Reflection(const double& xAxis = 0, const double& yAxis = 0);
+    static Transform Shear(const double& x, const double& y);
 
     [[nodiscard]] Transform operator*(const Transform& other) const;
     Transform& operator*=(const Transform& other);
@@ -26,9 +37,9 @@ public:
 
     [[nodiscard]] std::array<double, 9> GetValues() const;
 
-    [[nodiscard]] const Point& GetLocation() const;
-    [[nodiscard]] const double& GetX() const;
-    [[nodiscard]] const double& GetY() const;
+    [[nodiscard]] Point GetTranslation() const;
+    [[nodiscard]] const double& GetTranslationX() const;
+    [[nodiscard]] const double& GetTranslationY() const;
     [[nodiscard]] double GetScaleX() const;
     [[nodiscard]] double GetScaleY() const;
     [[nodiscard]] double GetRotationD() const; // degrees
@@ -48,22 +59,27 @@ public:
     [[nodiscard]] Transform ReflectedX(double axis = 0) const;
     [[nodiscard]] Transform ReflectedY(double axis = 0) const;
 
-    // Adjusts *this
-    void SetLocation(const Point& location);
-    void SetRotationD(double degrees);
-    void SetRotationR(double radians);
-    void RotateD(double degrees);
-    void RotateD(double degrees, const Point& pivot);
-    void RotateR(double radians);
-    void RotateR(double radians, const Point& pivot);
-    void Translate(double xDelta, double yDelta);
-    void Translate(const Point& delta);
-    void ReflectX(double axis = 0);
-    void ReflectY(double axis = 0);
+    Transform& RotateD(double degrees);
+    Transform& RotateD(double degrees, const Point& pivot);
+    Transform& RotateR(double radians);
+    Transform& RotateR(double radians, const Point& pivot);
+
+    Transform& Translate(double xDelta, double yDelta);
+    Transform& Translate(const Point& delta);
+
+    /// Reflect about line where x=0
+    Transform& ReflectX();
+    /// Reflect about line where x=axis
+    Transform& ReflectX(double axis);
+    /// Reflect about line where y=0
+    Transform& ReflectY();
+    /// Reflect about line where y=axis
+    Transform& ReflectY(double axis);
+
+    Transform& ShearX(double factor);
+    Transform& ShearY(double factor);
 
 private:
-    Point position;
-
     /*
      * { { a1, a2, a3 },
      *   { b1, b2, b3 },
@@ -71,10 +87,10 @@ private:
      */
     double a1;
     double a2;
-    double& a3;
+    double a3;
     double b1;
     double b2;
-    double& b3;
+    double b3;
     double c1;
     double c2;
     double c3;
