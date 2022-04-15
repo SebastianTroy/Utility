@@ -107,7 +107,7 @@ Transform Transform::operator*(const Transform& other) const
 
 Transform& Transform::operator*=(const Transform& other)
 {
-    *this = other * *this;
+    *this = *this * other;
     return *this;
 }
 
@@ -185,7 +185,7 @@ void Transform::Map(Point& point) const
     point = result.GetTranslation();
 }
 
-const Point Transform::Mapped(const Point& point) const
+Point Transform::Mapped(const Point& point) const
 {
     Transform result = *this * Transform::Translation(point);
     return result.GetTranslation();

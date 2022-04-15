@@ -18,7 +18,7 @@ void ChromeTracing::AddTraceWindow(std::string name, size_t eventCount, std::chr
 
 void ChromeTracing::AddEvent(ChromeTracing::Event&& event)
 {
-    auto now = std::chrono::steady_clock::now();
+    // auto now = std::chrono::steady_clock::now();
     if (IsTracing()) {
         if (events_.size() >= traceWindows_.front().samplesToCollect) {
             WriteToFile(traceWindows_.front().name, false);
@@ -28,9 +28,10 @@ void ChromeTracing::AddEvent(ChromeTracing::Event&& event)
             }
         } else {
             events_.emplace_back(std::move(event));
-            std::stringstream idStr;
-            idStr << std::this_thread::get_id();
-            events_.push_back(Event{ "AddEvent", "ChromeTrace:33", EventType::Duration, now, std::chrono::steady_clock::now() - now, "Stack", fmt::format("Thread: {}", idStr.str()), {} });
+            // Use below to see if the act  of adding an event to the trace log was taking up the time!
+            // std::stringstream idStr;
+            // idStr << std::this_thread::get_id();
+            // events_.push_back(Event{ "AddEvent", "ChromeTrace:33", EventType::Duration, now, std::chrono::steady_clock::now() - now, "Stack", fmt::format("Thread: {}", idStr.str()), {} });
         }
     }
 }

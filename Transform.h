@@ -47,7 +47,7 @@ public:
 
     // Transforms a point by *this
     void Map(Point& point) const;
-    [[nodiscard]] const Point Mapped(const Point& point) const;
+    [[nodiscard]] Point Mapped(const Point& point) const;
 
     // Creates modified copy
     [[nodiscard]] Transform RotatedD(double degrees) const;

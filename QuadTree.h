@@ -14,7 +14,7 @@
 namespace util {
 
 template <typename T>
-concept QuadTreeCompatible = requires (T t) {
+concept QuadTreeCompatible = requires (T& t) {
     { t.GetLocation() } -> std::same_as<const Point&>;
     { t.GetCollide() } -> Collidable;
 };
