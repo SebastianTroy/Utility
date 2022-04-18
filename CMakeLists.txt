@@ -7,9 +7,7 @@ set(CMAKE_INCLUDE_CURRENT_DIR ON)
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
-Message("Compiler: ${CMAKE_CXX_COMPILER_ID}")
-
-option(UTILITY_BuildTests "Build the unit tests if BUILD_TESTING is true." ON)
+option(UTILITY_BuildTests "Build the unit tests if BUILD_TESTING is true." OFF)
 option(UTILITY_AutorunTests "Build & run the unit tests if BUILD_TESTING is true." OFF)
 
 include(FetchContent)
@@ -18,9 +16,9 @@ list(APPEND CMAKE_MODULE_PATH ${CMAKE_CURRENT_SOURCE_DIR})
 include(json)
 include(fmt)
 include(catch2)
+include(CppPerfettoTrace)
 
 set(UTILITY_SOURCES
-    ChromeTracing.cpp
     JsonHelpers.cpp
     NeuralNetwork.cpp
     NeuralNetworkConnector.cpp
@@ -34,7 +32,6 @@ set(UTILITY_SOURCES
 set(UTILITY_HEADERS
     AutoClearingContainer.h
     Algorithm.h
-    ChromeTracing.h
     CircularBuffer.h
     Concepts.h
     Energy.h

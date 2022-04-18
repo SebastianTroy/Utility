@@ -2,7 +2,8 @@
 #define QUADTREE_H
 
 #include "Shape.h"
-#include "ChromeTracing.h"
+
+#include <PerfettoTracing.h>
 
 #include <vector>
 #include <memory>
