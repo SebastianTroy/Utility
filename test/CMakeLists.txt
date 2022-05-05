@@ -25,6 +25,7 @@ target_sources(Tests
     TestRollingStatistics.cpp
     TestShape.cpp
     TestTransform.cpp
+    TestTypeName.cpp
     TestWindowedFrequencyStatistics.cpp
     TestWindowedRollingStatistics.cpp
 )

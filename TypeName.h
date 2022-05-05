@@ -7,9 +7,9 @@
 
 namespace util {
 
-// credit https://stackoverflow.com/users/3624760/lyberta
+// credit https://stackoverflow.com/questions/81870/is-it-possible-to-print-a-variables-type-in-standard-c/56766138#56766138
 template <typename T>
-constexpr std::string_view TypeName()
+[[ nodiscard ]] constexpr std::string_view TypeName()
 {
     std::string_view name, prefix, suffix;
 #ifdef __clang__
