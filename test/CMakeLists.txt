@@ -14,11 +14,6 @@ target_sources(Tests
     TestAlgorithm.cpp
     TestAutoClearingContainer.cpp
     TestCircularBuffer.cpp
-    TestJsonHelpers.cpp
-    TestJsonPolymorphicSerialisationHelper.h
-    TestJsonPolymorphicSerialisationHelper.cpp
-    TestJsonSerialisationHelper.h
-    TestJsonSerialisationHelper.cpp
     TestQuadTree.cpp
     TestRandom.cpp
     TestRangeConverter.cpp

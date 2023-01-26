@@ -22,6 +22,43 @@ inline std::ostream& operator<<(std::ostream& os, Circle const& c)
     return os << "Circle{ " << Point{c.x, c.y} << ", Radius: " << c.radius << " }";
 }
 
+TEST_CASE("Shape serialisation", "[serialisation]")
+{
+    // Ensure tests are reproducable
+    Random::Seed(42);
+
+    auto rand = []() -> double
+    {
+        return Random::Number<double>(std::numeric_limits<double>::min() / 2.0, std::numeric_limits<double>::max() / 2.0);
+    };
+
+    auto test = [](const auto& toTest)
+    {
+        using TestType = std::remove_cvref_t<decltype(toTest)>;
+
+        auto serialised = esd::Serialise<TestType>(toTest);
+
+        REQUIRE(esd::Validate<TestType>(serialised));
+
+        auto deserialised = esd::DeserialiseWithoutChecks<TestType>(serialised);
+        auto reserialised = esd::Serialise<TestType>(deserialised);
+
+        REQUIRE(serialised == reserialised);
+
+        if constexpr (requires (TestType a, TestType b){ { a == b } -> std::same_as<bool>; }) {
+            REQUIRE(deserialised == toTest);
+        }
+    };
+
+    for (int i = 0; i < 5; ++i) {
+        test(Vec2{ rand(), rand() });
+        test(Point{ rand(), rand() });
+        test(Line{ Point{ rand(), rand() }, Point{ rand(), rand() } });
+        test(Circle{ rand(), rand(), rand() });
+        test(Rect{ rand(), rand(), rand(), rand() });
+    }
+}
+
 TEST_CASE("Collision", "[shape]")
 {
     // Ensure tests are reproducable

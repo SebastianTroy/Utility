@@ -1,10 +1,8 @@
 #ifndef NEURALNETWORK_H
 #define NEURALNETWORK_H
 
-#include "Random.h"
-#include "JsonSerialisationHelper.h"
+#include <EasySerDes.h>
 
-#include <nlohmann/json.hpp>
 #include <fmt/format.h>
 
 #include <vector>
@@ -33,10 +31,8 @@ public:
      * Creates a rectangular network of the specified width and height, with
      * random edge weights between 0.0 and 1.0.
      */
-    NeuralNetwork(unsigned layerCount, unsigned width, InitialWeights initialWeights);
-    NeuralNetwork(std::vector<Layer>&& layers, unsigned width);
-
-    static void ConfigureJsonSerialisationHelper(util::JsonSerialisationHelper<NeuralNetwork>& helper);
+    NeuralNetwork(unsigned layerCount, std::size_t width, InitialWeights initialWeights);
+    NeuralNetwork(std::vector<Layer>&& layers, std::size_t width);
 
     size_t GetInputCount() const { return layers_.empty() ? 0 : layers_.front().size(); }
     size_t GetOutputCount() const { return layers_.empty() ? 0 : layers_.back().empty() ? 0 : layers_.back().size(); }
@@ -51,6 +47,7 @@ public:
     void ForEach(const std::function<void(unsigned, unsigned, const Node&)>& perNode) const;
     size_t GetLayerWidth() const { return width_; }
     size_t GetLayerCount() const { return layers_.size(); }
+    const std::vector<Layer>& GetLayers() const { return layers_; }
 
     std::shared_ptr<NeuralNetwork> WithMutatedConnections() const;
     std::shared_ptr<NeuralNetwork> WithColumnAdded(size_t index, InitialWeights connections) const;
@@ -86,6 +83,18 @@ struct fmt::formatter<NeuralNetwork>
     auto format(const NeuralNetwork& network, FormatContext& context)
     {
         return fmt::format_to(context.out(), "{} inputs, {} layers", network.GetInputCount(), network.GetLayerCount());
+    }
+};
+
+template<>
+class esd::Serialiser<NeuralNetwork> : public esd::ClassHelper<NeuralNetwork, std::vector<NeuralNetwork::Layer>, size_t> {
+public:
+    static void Configure()
+    {
+        SetConstruction(
+            CreateParameter(&NeuralNetwork::GetLayers, "Layers"),
+            CreateParameter(&NeuralNetwork::GetLayerWidth, "Width")
+        );
     }
 };
 

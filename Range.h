@@ -1,10 +1,7 @@
 #ifndef RANGE_H
 #define RANGE_H
 
-#include "JsonHelpers.h"
-#include "JsonSerialisationHelper.h"
-
-#include <nlohmann/json.hpp>
+#include <EasySerDes.h>
 
 #include <algorithm>
 #include <optional>
@@ -15,8 +12,6 @@ template <typename T>
 class Range {
 public:
     Range(const T& first, const T& last);
-
-    static void ConfigureJsonSerialisationHelper(JsonSerialisationHelper<Range<T>>& helper);
 
     const T& Min() const;
     const T& Max() const;
@@ -49,14 +44,6 @@ Range<T>::Range(const T& first, const T& last)
     : first_(first)
     , last_(last)
 {
-}
-
-template<typename T>
-void Range<T>::ConfigureJsonSerialisationHelper(JsonSerialisationHelper<Range<T> >& helper)
-{
-    helper.RegisterConstructor(helper.CreateParameter("First", &Range<T>::first_),
-                               helper.CreateParameter("Last", &Range<T>::last_)
-                               );
 }
 
 template<typename T>
@@ -163,5 +150,18 @@ bool Range<T>::operator<=(const Range<T>& other) const
 }
 
 } // end namespace util
+
+template<typename T>
+class esd::Serialiser<util::Range<T>> : public esd::ClassHelper<util::Range<T>, T, T> {
+public:
+    static void Configure()
+    {
+        using This = ClassHelper<util::Range<T>, T, T>;
+        This::SetConstruction(
+            This::CreateParameter(&util::Range<T>::First, "First"),
+            This::CreateParameter(&util::Range<T>::Last, "Last")
+        );
+    }
+};
 
 #endif // RANGE_H

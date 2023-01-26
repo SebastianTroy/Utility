@@ -1,9 +1,9 @@
 #ifndef SHAPEH
 #define SHAPEH
 
-#include "JsonHelpers.h"
-#include "JsonSerialisationHelper.h"
 #include "Range.h"
+
+#include <EasySerDes.h>
 
 #include <nlohmann/json.hpp>
 
@@ -20,34 +20,16 @@ namespace {
 struct Vec2 {
     double x;
     double y;
-
-    static void ConfigureJsonSerialisationHelper(util::JsonSerialisationHelper<Vec2>& helper)
-    {
-        helper.RegisterVariable("x", &Vec2::x);
-        helper.RegisterVariable("y", &Vec2::y);
-    }
 };
 
 struct Point {
     double x;
     double y;
-
-    static void ConfigureJsonSerialisationHelper(util::JsonSerialisationHelper<Point>& helper)
-    {
-        helper.RegisterVariable("x", &Point::x);
-        helper.RegisterVariable("y", &Point::y);
-    }
 };
 
 struct Line {
     Point a;
     Point b;
-
-    static void ConfigureJsonSerialisationHelper(util::JsonSerialisationHelper<Line>& helper)
-    {
-        helper.RegisterVariable("a", &Line::a);
-        helper.RegisterVariable("b", &Line::b);
-    }
 };
 
 struct Circle {
@@ -55,13 +37,6 @@ struct Circle {
     double y;
     // inclusive
     double radius;
-
-    static void ConfigureJsonSerialisationHelper(util::JsonSerialisationHelper<Circle>& helper)
-    {
-        helper.RegisterVariable("x", &Circle::x);
-        helper.RegisterVariable("y", &Circle::y);
-        helper.RegisterVariable("Radius", &Circle::radius);
-    }
 };
 
 struct Rect {
@@ -71,14 +46,6 @@ struct Rect {
     // exclusive
     double right;
     double bottom;
-
-    static void ConfigureJsonSerialisationHelper(util::JsonSerialisationHelper<Rect>& helper)
-    {
-        helper.RegisterVariable("Left", &Rect::left);
-        helper.RegisterVariable("Top", &Rect::top);
-        helper.RegisterVariable("Right", &Rect::right);
-        helper.RegisterVariable("Bottom", &Rect::bottom);
-    }
 };
 
 inline bool operator!=(const Point& p1, const Point& p2)
@@ -423,5 +390,68 @@ auto Collides(Shape1 a, Shape2 b) -> decltype(::Collides(b, a))
     // Uses SFINAE to prevent recursive calling
     return Collides(b, a);
 }
+
+template<>
+class esd::Serialiser<Vec2> : public esd::ClassHelper<Vec2, double, double> {
+public:
+    static void Configure()
+    {
+        SetConstruction(
+            CreateParameter(&Vec2::x, "x"),
+            CreateParameter(&Vec2::y, "y")
+        );
+    }
+};
+
+template<>
+class esd::Serialiser<Point> : public esd::ClassHelper<Point, double, double> {
+public:
+    static void Configure()
+    {
+        SetConstruction(
+            CreateParameter(&Point::x, "x"),
+            CreateParameter(&Point::y, "y")
+        );
+    }
+};
+
+template<>
+class esd::Serialiser<Line> : public esd::ClassHelper<Line, Point, Point> {
+public:
+    static void Configure()
+    {
+        SetConstruction(
+            CreateParameter(&Line::a, "a"),
+            CreateParameter(&Line::b, "b")
+        );
+    }
+};
+
+template<>
+class esd::Serialiser<Circle> : public esd::ClassHelper<Circle, double, double, double> {
+public:
+    static void Configure()
+    {
+        SetConstruction(
+            CreateParameter(&Circle::x, "x"),
+            CreateParameter(&Circle::y, "y"),
+            CreateParameter(&Circle::radius, "radius")
+        );
+    }
+};
+
+template<>
+class esd::Serialiser<Rect> : public esd::ClassHelper<Rect, double, double, double, double> {
+public:
+    static void Configure()
+    {
+        SetConstruction(
+            CreateParameter(&Rect::left, "left"),
+            CreateParameter(&Rect::top, "top"),
+            CreateParameter(&Rect::right, "right"),
+            CreateParameter(&Rect::bottom, "bottom")
+        );
+    }
+};
 
 #endif // SHAPEH

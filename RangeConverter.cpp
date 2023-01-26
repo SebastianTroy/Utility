@@ -1,7 +1,5 @@
 #include "RangeConverter.h"
 
-#include "JsonHelpers.h"
-
 using namespace nlohmann;
 
 namespace util {
@@ -10,13 +8,6 @@ RangeConverter::RangeConverter(Range<double> from, Range<double> to)
     : from_(from)
     , to_(to)
 {
-}
-
-void RangeConverter::ConfigureJsonSerialisationHelper(util::JsonSerialisationHelper<RangeConverter>& helper)
-{
-    helper.RegisterConstructor(helper.CreateParameter("From", &RangeConverter::from_),
-                               helper.CreateParameter("To", &RangeConverter::to_)
-                               );
 }
 
 double RangeConverter::Convert(const double& value) const

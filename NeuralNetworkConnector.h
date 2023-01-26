@@ -1,9 +1,7 @@
 #ifndef NEURALNETWORKCONNECTOR_H
 #define NEURALNETWORKCONNECTOR_H
 
-#include "JsonHelpers.h"
-
-#include <nlohmann/json.hpp>
+#include <EasySerDes.h>
 
 #include <vector>
 #include <memory>
@@ -28,9 +26,7 @@ public:
      *                to PassForward
      */
     NeuralNetworkConnector(unsigned inputs, unsigned outputs);
-    NeuralNetworkConnector(std::vector<std::vector<double> >&& weights);
-
-    static void ConfigureJsonSerialisationHelper(util::JsonSerialisationHelper<NeuralNetworkConnector>& helper);
+    NeuralNetworkConnector(std::vector<std::vector<double>>&& weights);
 
     void PassForward(const std::vector<double>& inputValues, std::vector<double>& outputValues);
 
@@ -46,6 +42,17 @@ public:
 
 private:
     std::vector<std::vector<double>> weights_;
+};
+
+template<>
+class esd::Serialiser<NeuralNetworkConnector> : public esd::ClassHelper<NeuralNetworkConnector, std::vector<std::vector<double>>> {
+public:
+    static void Configure()
+    {
+        SetConstruction(
+            CreateParameter(&NeuralNetworkConnector::Inspect, "Weights")
+        );
+    }
 };
 
 #endif // NEURALNETWORKCONNECTOR_H

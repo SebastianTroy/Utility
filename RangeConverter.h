@@ -3,9 +3,7 @@
 
 #include "Range.h"
 
-#include <nlohmann/json.hpp>
-
-#include <optional>
+#include <EasySerDes.h>
 
 namespace util {
 
@@ -14,8 +12,6 @@ public:
     RangeConverter(const RangeConverter& other) = default;
     RangeConverter(RangeConverter&& other) = default;
     RangeConverter(Range<double> from, Range<double> to);
-
-    static void ConfigureJsonSerialisationHelper(util::JsonSerialisationHelper<RangeConverter>& helper);
 
     RangeConverter& operator=(const RangeConverter& other) = default;
     RangeConverter& operator=(RangeConverter&& other) = default;
@@ -30,5 +26,18 @@ private:
 };
 
 } // end namespace util
+
+template<>
+class esd::Serialiser<util::RangeConverter> : public esd::ClassHelper<util::RangeConverter, util::Range<double>, util::Range<double>> {
+public:
+    static void Configure()
+    {
+        using This = ClassHelper<util::RangeConverter, util::Range<double>, util::Range<double>>;
+        This::SetConstruction(
+            This::CreateParameter(&util::RangeConverter::GetFrom, "from"),
+            This::CreateParameter(&util::RangeConverter::GetTo, "to")
+        );
+    }
+};
 
 #endif // RANGECONVERTER_H

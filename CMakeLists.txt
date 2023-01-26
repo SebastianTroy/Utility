@@ -17,9 +17,9 @@ include(json)
 include(fmt)
 include(catch2)
 include(CppPerfettoTrace)
+include(CppEasySerDes)
 
 set(UTILITY_SOURCES
-    JsonHelpers.cpp
     NeuralNetwork.cpp
     NeuralNetworkConnector.cpp
     RangeConverter.cpp
@@ -36,9 +36,6 @@ set(UTILITY_HEADERS
     Concepts.h
     Energy.h
     FormatHelpers.h
-    JsonHelpers.h
-    JsonPolymorphicSerialisationHelper.h
-    JsonSerialisationHelper.h
     MathConstants.h
     MinMax.h
     NeuralNetwork.h
@@ -55,7 +52,7 @@ set(UTILITY_HEADERS
     WindowedRollingStatistics.h
 )
 
-add_library(Utility OBJECT
+add_library(Utility STATIC
     ${UTILITY_SOURCES}
     ${UTILITY_HEADERS}
 )
@@ -64,6 +61,7 @@ target_link_libraries(Utility
     PRIVATE
     nlohmann_json::nlohmann_json
     fmt::fmt
+    CppEasySerDes
 )
 
 if (BUILD_TESTING AND UTILITY_BuildTests)

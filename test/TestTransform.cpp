@@ -2,6 +2,7 @@
 
 #include <FormatHelpers.h>
 #include <Algorithm.h>
+#include <Random.h>
 
 #include <catch2/catch.hpp>
 
@@ -19,6 +20,41 @@ inline void CompareValues(const Transform& a, const Transform& b)
     {
         REQUIRE_THAT(a, Catch::Matchers::WithinAbs(b, 0.0000000000001));
     });
+}
+
+TEST_CASE("Transform serialisation", "[serialisation]")
+{
+    // Ensure tests are reproducable
+    Random::Seed(42);
+
+    auto randArray = []() -> std::array<double, 9>
+    {
+        auto rand = []() -> double
+        {
+            return Random::Number<double>(std::numeric_limits<double>::min() / 2.0, std::numeric_limits<double>::max() / 2.0);
+        };
+        return { rand(), rand(), rand(), rand(), rand(), rand(), rand(), rand(), rand() };
+    };
+
+    auto test = [](const Transform& toTest)
+    {
+        using TestType = Transform;
+
+        auto serialised = esd::Serialise<TestType>(toTest);
+
+        REQUIRE(esd::Validate<TestType>(serialised));
+
+        auto deserialised = esd::DeserialiseWithoutChecks<TestType>(serialised);
+        auto reserialised = esd::Serialise<TestType>(deserialised);
+
+        REQUIRE(serialised == reserialised);
+        REQUIRE(deserialised == toTest);
+    };
+
+
+    for (int i = 0; i < 5; ++i) {
+        test(Transform(randArray()));
+    }
 }
 
 TEST_CASE("Transform", "[]")

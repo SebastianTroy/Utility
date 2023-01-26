@@ -33,11 +33,6 @@ NeuralNetworkConnector::NeuralNetworkConnector(std::vector<std::vector<double>>&
 {
 }
 
-void NeuralNetworkConnector::ConfigureJsonSerialisationHelper(util::JsonSerialisationHelper<NeuralNetworkConnector>& helper)
-{
-    helper.RegisterConstructor(helper.CreateParameter("Weights", &NeuralNetworkConnector::weights_));
-}
-
 void NeuralNetworkConnector::PassForward(const std::vector<double>& inputValues, std::vector<double>& outputValues)
 {
     assert(inputValues.size() == weights_.size() && outputValues.size() == weights_.at(0).size());

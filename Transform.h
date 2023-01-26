@@ -2,7 +2,8 @@
 #define TRANSFORM_H
 
 #include "Shape.h"
-#include "JsonSerialisationHelper.h"
+
+#include <esd/ClassHelper.h>
 
 #include <nlohmann/json.hpp>
 #include <fmt/format.h>
@@ -18,8 +19,6 @@ public:
     Transform();
     Transform(const Transform& other);
     Transform(const std::array<double, 9>& values);
-
-    static void ConfigureJsonSerialisationHelper(util::JsonSerialisationHelper<Transform>& helper);
 
     static Transform Translation(const Point& location);
     static Transform Translation(const double& x, const double& y);
@@ -130,5 +129,15 @@ struct fmt::formatter<Transform> : fmt::formatter<double>
     }
 };
 
+template<>
+class esd::Serialiser<Transform> : public esd::ClassHelper<Transform, std::array<double, 9>> {
+public:
+    static void Configure()
+    {
+        SetConstruction(
+            CreateParameter(&Transform::GetValues, "values")
+        );
+    }
+};
 
 #endif // TRANSFORM_H

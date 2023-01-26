@@ -33,21 +33,6 @@ Transform::Transform(const std::array<double, 9>& values)
 {
 }
 
-void Transform::ConfigureJsonSerialisationHelper(util::JsonSerialisationHelper<Transform>& helper)
-{
-    helper.RegisterVariable("a1", &Transform::a1);
-    helper.RegisterVariable("a2", &Transform::a2);
-    helper.RegisterVariable("a3", &Transform::a3);
-
-    helper.RegisterVariable("b1", &Transform::b1);
-    helper.RegisterVariable("b2", &Transform::b2);
-    helper.RegisterVariable("b3", &Transform::b3);
-
-    helper.RegisterVariable("c1", &Transform::c1);
-    helper.RegisterVariable("c2", &Transform::c2);
-    helper.RegisterVariable("c3", &Transform::c3);
-}
-
 Transform Transform::Translation(const Point& location)
 {
     return Transform{}.Translated(location.x, location.y);

@@ -54,3 +54,39 @@ TEST_CASE("RangeConverter", "[Range]")
         }
     }
 }
+
+
+TEST_CASE("RangeConverter serialisation", "[serialisation]")
+{
+    // Ensure tests are reproducable
+    Random::Seed(42);
+
+    auto randRange = []() -> Range<double>
+    {
+        auto rand = []() -> double
+        {
+            return Random::Number<double>(std::numeric_limits<double>::min() / 2.0, std::numeric_limits<double>::max() / 2.0);
+        };
+        return { rand(), rand() };
+    };
+
+    auto test = [](const RangeConverter& toTest)
+    {
+        using TestType = RangeConverter;
+        auto serialised = esd::Serialise<TestType>(toTest);
+
+        REQUIRE(esd::Validate<TestType>(serialised));
+
+        auto deserialised = esd::DeserialiseWithoutChecks<TestType>(serialised);
+        auto reserialised = esd::Serialise<TestType>(deserialised);
+
+        REQUIRE(serialised == reserialised);
+        REQUIRE(deserialised.GetFrom() == toTest.GetFrom());
+        REQUIRE(deserialised.GetTo() == toTest.GetTo());
+    };
+
+
+    for (int i = 0; i < 5; ++i) {
+        test(RangeConverter(randRange(), randRange()));
+    }
+}

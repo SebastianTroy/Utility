@@ -2,14 +2,16 @@
 
 #include "Algorithm.h"
 
+#include "Random.h"
+
 using namespace nlohmann;
 
-NeuralNetwork::NeuralNetwork(unsigned layerCount, unsigned width, NeuralNetwork::InitialWeights initialWeights)
+NeuralNetwork::NeuralNetwork(unsigned layerCount, std::size_t width, NeuralNetwork::InitialWeights initialWeights)
     : NeuralNetwork(initialWeights == InitialWeights::Random ? CreateRandomLayers(layerCount, width) : CreatePassThroughLayers(layerCount, width), width)
 {
 }
 
-NeuralNetwork::NeuralNetwork(std::vector<NeuralNetwork::Layer>&& layers, unsigned width)
+NeuralNetwork::NeuralNetwork(std::vector<NeuralNetwork::Layer>&& layers, std::size_t width)
     : layers_(std::move(layers))
     , width_(width)
 {
@@ -18,13 +20,6 @@ NeuralNetwork::NeuralNetwork(std::vector<NeuralNetwork::Layer>&& layers, unsigne
             assert(layer.size() == width_);
         }
     }
-}
-
-void NeuralNetwork::ConfigureJsonSerialisationHelper(util::JsonSerialisationHelper<NeuralNetwork>& helper)
-{
-    helper.RegisterConstructor(helper.CreateParameter("Layers", &NeuralNetwork::layers_),
-                               helper.CreateParameter("Width", &NeuralNetwork::width_)
-                               );
 }
 
 size_t NeuralNetwork::GetConnectionCount() const
