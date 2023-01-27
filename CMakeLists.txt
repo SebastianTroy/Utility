@@ -58,7 +58,6 @@ add_library(Utility STATIC
 )
 
 target_link_libraries(Utility
-    PRIVATE
     nlohmann_json::nlohmann_json
     fmt::fmt
     CppEasySerDes
