@@ -16,7 +16,6 @@ list(APPEND CMAKE_MODULE_PATH ${CMAKE_CURRENT_SOURCE_DIR})
 include(json)
 include(fmt)
 include(catch2)
-include(CppPerfettoTrace)
 include(CppEasySerDes)
 
 set(UTILITY_SOURCES

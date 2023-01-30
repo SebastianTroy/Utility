@@ -35,7 +35,6 @@ target_link_libraries(Tests
     PRIVATE
     Catch2::Catch2
     Utility
-    CppPerfettoTrace
 )
 
 if (BUILD_TESTING AND UTILITY_AutorunTests)
