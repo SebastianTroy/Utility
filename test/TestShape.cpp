@@ -22,7 +22,7 @@ inline std::ostream& operator<<(std::ostream& os, Circle const& c)
     return os << "Circle{ " << Point{c.x, c.y} << ", Radius: " << c.radius << " }";
 }
 
-TEST_CASE("Shape serialisation", "[serialisation]")
+TEST_CASE("Serialiser<Shape>", "[serialisation]")
 {
     // Ensure tests are reproducable
     Random::Seed(42);
@@ -59,7 +59,84 @@ TEST_CASE("Shape serialisation", "[serialisation]")
     }
 }
 
-TEST_CASE("Collision", "[shape]")
+TEST_CASE("Shape Helper Functions", "[shape]")
+{
+    constexpr double tau = std::numbers::pi * 2.0;
+    constexpr double half = tau / 2.0;
+    constexpr double quarter = tau / 4.0;
+    constexpr double eighth = tau / 8.0;
+
+    constexpr double south = 0.0;
+    constexpr double southEast = eighth;
+    constexpr double east = quarter;
+    constexpr double northEast = half - eighth;
+    constexpr double north = half;
+    constexpr double northWest = half + eighth;
+    constexpr double west = half + quarter;
+    constexpr double southWest = tau - eighth;
+    constexpr double southAgain = tau;
+
+    SECTION("ApplyOffset")
+    {
+        Random::Seed(44);
+
+        struct Test {
+            double bearing_;
+            double xMultiplyer_;
+            double yMultiplyer_;
+        };
+
+        const double diag = 1.0 / std::sqrt(2.0);
+        const std::vector<Test> testDirections { {south, 0, 1},
+                                                 {southEast, diag, diag},
+                                                 {east, 1, 0},
+                                                 {northEast, diag, -diag},
+                                                 {north, 0, -1},
+                                                 {northWest, -diag, -diag},
+                                                 {west, -1, 0},
+                                                 {southWest, -diag, diag},
+                                                 {southAgain, 0, 1},
+                                               };
+
+
+        auto runTests = [&](Point start, double length)
+        {
+
+            for (const Test& test : testDirections) {
+                // Check: offset(start) == {start.x + (length * xMult), start.y (length * yMult)}
+                {
+                    Point direct = ApplyOffset(start, test.bearing_, length);
+                    Point indirect = { start.x + (length * test.xMultiplyer_), start.y + (length * test.yMultiplyer_)};
+                    REQUIRE_THAT(direct.x, Catch::WithinAbs(indirect.x, 0.0000000001));
+                    REQUIRE_THAT(direct.y, Catch::WithinAbs(indirect.y, 0.0000000001));
+                }
+
+                // Check: offset(start) == start + offset(origin)
+                {
+                    const Point origin{0, 0};
+                    Point direct = ApplyOffset(start, test.bearing_, length);
+                    Point indirect = start + ApplyOffset(origin, test.bearing_, length);
+                    REQUIRE_THAT(direct.x, Catch::WithinAbs(indirect.x, 0.0000000001));
+                    REQUIRE_THAT(direct.y, Catch::WithinAbs(indirect.y, 0.0000000001));
+                }
+
+                // Check: GetDistance(start, offset(start) == length)
+                {
+                    double calculatedLength = GetDistance(start, ApplyOffset(start, test.bearing_, length));
+                    REQUIRE_THAT(calculatedLength, Catch::WithinAbs(length, 0.0000000001));
+                }
+            }
+        };
+
+        runTests({0, 0}, 10);
+        runTests({10, 10}, 100);
+        for (int i = 0; i < 10; ++i) {
+            runTests(Random::PointIn(Rect{-100, 100, 100, -100}), Random::Number<double>(0.0, 100.0));
+        }
+    }
+}
+
+TEST_CASE("Shape Collision", "[shape]")
 {
     // Ensure tests are reproducable
     Random::Seed(42);

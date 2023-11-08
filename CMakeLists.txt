@@ -19,6 +19,7 @@ include(catch2)
 include(CppEasySerDes)
 
 set(UTILITY_SOURCES
+    Colour.cpp
     NeuralNetwork.cpp
     NeuralNetworkConnector.cpp
     RangeConverter.cpp
@@ -32,6 +33,7 @@ set(UTILITY_HEADERS
     AutoClearingContainer.h
     Algorithm.h
     CircularBuffer.h
+    Colour.h
     Concepts.h
     Energy.h
     FormatHelpers.h
