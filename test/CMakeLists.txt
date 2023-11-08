@@ -14,6 +14,7 @@ target_sources(Tests
     TestAlgorithm.cpp
     TestAutoClearingContainer.cpp
     TestCircularBuffer.cpp
+    TestColour.cpp
     TestNeuralNetwork.cpp
     TestQuadTree.cpp
     TestRandom.cpp

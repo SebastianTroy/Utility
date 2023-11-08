@@ -7,6 +7,7 @@ AveragedColour::AveragedColour()
     , r_(0)
     , g_(0)
     , b_(0)
+    , a_(0)
 {
 }
 
@@ -17,10 +18,10 @@ AveragedColour::AveragedColour(uint32_t rgba)
 
 AveragedColour::AveragedColour(uint32_t r, uint32_t g, uint32_t b, uint32_t a)
     : count_(1)
-    , r_(r)
-    , g_(g)
-    , b_(b)
-    , a_(a)
+    , r_(r & 0xFF)
+    , g_(g & 0xFF)
+    , b_(b & 0xFF)
+    , a_(a & 0xFF)
 {
 }
 
