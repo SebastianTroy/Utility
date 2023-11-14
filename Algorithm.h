@@ -1,6 +1,8 @@
 #ifndef ALGORITHM_H
 #define ALGORITHM_H
 
+#include "Concepts.h"
+
 #include <functional>
 #include <cmath>
 #include <ranges>
@@ -126,6 +128,18 @@ std::vector<T> Combine(std::vector<T>&& first, std::vector<T>&& second)
     combined.swap(first);
     combined.reserve(combined.size() + second.size());
     std::move(std::begin(second), std::end(second), std::back_inserter(combined));
+    return combined;
+}
+
+template <template <typename, typename, typename...> typename Map, typename Key, typename Value, typename... Other>
+    requires IsInstance<Map<Key, Value, Other...>, Map> && requires (Value& a, Value& b) { {a += b} -> std::same_as<Value&>; }
+Map<Key, Value> SumHistograms(Map<Key, Value>&& first, Map<Key, Value>&& second)
+{
+    Map<Key, Value> combined;
+    combined.swap(first);
+    for (const auto& [key, value] : second) {
+        combined[key] += value;
+    }
     return combined;
 }
 
