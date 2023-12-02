@@ -47,6 +47,7 @@ set(UTILITY_HEADERS
     RangeConverter.h
     RollingStatistics.h
     Shape.h
+    SpatialMap.h
     Transform.h
     TypeName.h
     WindowedFrequencyStatistics.h

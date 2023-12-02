@@ -21,6 +21,7 @@ target_sources(Tests
     TestRangeConverter.cpp
     TestRollingStatistics.cpp
     TestShape.cpp
+    TestSpatialMap.cpp
     TestTransform.cpp
     TestTypeName.cpp
     TestWindowedFrequencyStatistics.cpp
