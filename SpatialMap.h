@@ -35,7 +35,7 @@ concept SpatialMapCompatible = requires (T& t, const T& ct) {
  * ```
  *
  * Future work may include fleshing out the iterators to allow for stl algorithm
- * compatability. And perhaps const versions of the iterators.
+ * compatability.
  */
 template <typename T>
     requires SpatialMapCompatible<T>
@@ -396,6 +396,340 @@ public:
         const ColliderType& collider_;
     };
 
+    class ConstRegionIteratorHelper {
+    public:
+        class RegionIterator {
+        public:
+            explicit RegionIterator(MapType::const_iterator&& iter)
+                : regionIter_(std::move(iter))
+            {
+            }
+
+            RegionIterator& operator++()
+            {
+                ++regionIter_;
+                return *this;
+            }
+
+            RegionIterator& End()
+            {
+                regionIter_ = {};
+                return *this;
+            }
+
+            const Region& CurrentRegion()
+            {
+                return regionIter_->second;
+            }
+
+            bool operator!=(const RegionIterator& other) const
+            {
+                return regionIter_ != other.regionIter_;
+            }
+
+            const Rect& operator*() const
+            {
+                return regionIter_->second.area_;
+            }
+
+            const MapType::key_type& Key() const
+            {
+                return regionIter_->first;
+            }
+
+        private:
+            MapType::const_iterator regionIter_;
+        };
+
+        using iterator = RegionIterator;
+        using value_type = Rect;
+        using size_type = size_t;
+
+        ConstRegionIteratorHelper(const SpatialMap<T>& container)
+            : container_(container)
+        {
+        }
+
+        RegionIterator begin() const
+        {
+            return RegionIterator(container_.regions_.cbegin());
+        }
+
+        RegionIterator end() const
+        {
+            return RegionIterator(container_.regions_.cend());
+        }
+
+    private:
+        const SpatialMap<T>& container_;
+    };
+
+    class ConstFilteredRegionIteratorHelper {
+    public:
+        class RegionIterator {
+        public:
+            explicit RegionIterator(const SpatialMap<T>& container, const Rect& regionFilter)
+                : regionFilter_(regionFilter)
+                , map_(container.regions_)
+                , currentRegion_(nullptr)
+            {
+                std::tie(minX_, minY_) = container.GetCoordinate({ regionFilter.left, regionFilter.top });
+                std::tie(maxX_, maxY_) = container.GetCoordinate({ regionFilter.right, regionFilter.bottom });
+                x_ = minX_ - 1;
+                y_ = minY_;
+                Next();
+            }
+
+            RegionIterator& operator++()
+            {
+                Next();
+                return *this;
+            }
+
+            RegionIterator& End()
+            {
+                currentRegion_ = nullptr;
+                return *this;
+            }
+
+            bool operator!=(const RegionIterator& other) const
+            {
+                return currentRegion_ != other.currentRegion_;
+            }
+
+            const Rect& operator*() const
+            {
+                return currentRegion_->area_;
+            }
+
+            MapType::key_type Key() const
+            {
+                return GetCoordinateKey({x_, y_});
+            }
+
+            const Region& CurrentRegion()
+            {
+                return *currentRegion_;
+            }
+
+        private:
+            const Rect& regionFilter_;
+            int32_t minX_, maxX_, minY_, maxY_;
+            const MapType& map_;
+            const Region* currentRegion_;
+            int32_t x_, y_;
+
+            void Next()
+            {
+                do {
+                    ++x_;
+                    if (x_ > maxX_) {
+                        x_ = minX_;
+                        ++y_;
+                        if (y_ > maxY_) {
+                            // Set state to end() iterator
+                            currentRegion_ = nullptr;
+                            return;
+                        }
+                    }
+                    currentRegion_ = map_.count(Key()) > 0 ? &map_.at(Key()) : nullptr;
+                } while (currentRegion_ == nullptr);
+            }
+        };
+
+        using iterator = RegionIterator;
+        using value_type = Rect;
+        using size_type = size_t;
+
+        ConstFilteredRegionIteratorHelper(const SpatialMap<T>& container, const Rect& regionFilter)
+            : container_(container)
+            , regionFilter_(regionFilter)
+        {
+        }
+
+        RegionIterator begin() const
+        {
+            return RegionIterator(container_, regionFilter_);
+        }
+
+        RegionIterator end() const
+        {
+            return RegionIterator(container_, regionFilter_).End();
+        }
+
+    private:
+        const SpatialMap<T>& container_;
+        const Rect& regionFilter_;
+    };
+
+    template <typename ConstRegionIteratorHelperType>
+    class ConstItemIteratorHelper {
+    public:
+        class ItemIterator {
+        public:
+            explicit ItemIterator(const ConstRegionIteratorHelperType& regionIteratorHelper)
+                : regionIteratorHelper_(regionIteratorHelper)
+                , regionIter_(regionIteratorHelper_.begin())
+                , itemIter_{}
+            {
+                if (regionIter_ != std::end(regionIteratorHelper_)) {
+                    itemIter_ = std::begin(regionIter_.CurrentRegion().items_);
+                }
+            }
+
+            ItemIterator& operator++()
+            {
+                ++itemIter_;
+                if (itemIter_ == std::end(regionIter_.CurrentRegion().items_)) {
+                    ++regionIter_;
+                    if (regionIter_ != std::end(regionIteratorHelper_)) {
+                        itemIter_ = std::begin(regionIter_.CurrentRegion().items_);
+                    } else {
+                        itemIter_ = {};
+                    }
+                }
+                return *this;
+            }
+
+            ItemIterator& End()
+            {
+                regionIter_.End();
+                itemIter_ = {};
+                return *this;
+            }
+
+            bool operator!=(const ItemIterator& other) const
+            {
+                return other.regionIter_ != regionIter_ && other.itemIter_ != itemIter_;
+            }
+
+            const std::shared_ptr<T>& operator*()
+            {
+                return *itemIter_;
+            }
+
+        private:
+            ConstRegionIteratorHelperType regionIteratorHelper_;
+            ConstRegionIteratorHelperType::iterator regionIter_;
+            ContainerType::const_iterator itemIter_;
+        };
+
+        using iterator = ItemIterator;
+        using value_type = std::shared_ptr<T>;
+        using size_type = size_t;
+
+        ConstItemIteratorHelper(ConstRegionIteratorHelperType&& regionIteratorHelper, const SpatialMap<T>& container)
+            : container_(container)
+            , regionIteratorHelper_(std::move(regionIteratorHelper))
+        {
+        }
+
+        ItemIterator begin() const
+        {
+            return ItemIterator(regionIteratorHelper_);
+        }
+
+        ItemIterator end() const
+        {
+            return ItemIterator(regionIteratorHelper_).End();
+        }
+
+    private:
+        const SpatialMap<T>& container_;
+        ConstRegionIteratorHelperType regionIteratorHelper_;
+    };
+
+    template <typename ConstRegionIteratorHelperType, typename ColliderType>
+    class ConstFilteredItemIteratorHelper {
+    public:
+        class ItemIterator {
+        public:
+            explicit ItemIterator(const ConstRegionIteratorHelperType& regionIteratorHelper, const ColliderType& collider)
+                : regionIteratorHelper_(regionIteratorHelper)
+                , regionIter_(regionIteratorHelper_.begin())
+                , itemIter_{}
+                , nullIter_{}
+                , collider_(collider)
+            {
+                if (regionIter_ != std::end(regionIteratorHelper_)) {
+                    itemIter_ = std::begin(regionIter_.CurrentRegion().items_);
+                    Next();
+                }
+            }
+
+            ItemIterator& operator++()
+            {
+                Next();
+                return *this;
+            }
+
+            ItemIterator& End()
+            {
+                regionIter_.End();
+                itemIter_ = {};
+                return *this;
+            }
+
+            bool operator!=(const ItemIterator& other) const
+            {
+                return other.regionIter_ != regionIter_ && other.itemIter_ != itemIter_;
+            }
+
+            const std::shared_ptr<T>& operator*()
+            {
+                return *itemIter_;
+            }
+
+        private:
+            ConstRegionIteratorHelperType regionIteratorHelper_;
+            ConstRegionIteratorHelperType::iterator regionIter_;
+            ContainerType::const_iterator itemIter_;
+            ContainerType::const_iterator nullIter_;
+            const ColliderType& collider_;
+
+            void Next()
+            {
+                do {
+                    ++itemIter_;
+                    if (itemIter_ == std::end(regionIter_.CurrentRegion().items_)) {
+                        ++regionIter_;
+                        if (regionIter_ != std::end(regionIteratorHelper_)) {
+                            itemIter_ = std::begin(regionIter_.CurrentRegion().items_);
+                        } else {
+                            itemIter_ = {};
+                        }
+                    }
+                } while (itemIter_ != nullIter_ && !Collides(collider_, (*itemIter_)->GetCollide()));
+            }
+        };
+
+        using iterator = ItemIterator;
+        using value_type = std::shared_ptr<T>;
+        using size_type = size_t;
+
+        ConstFilteredItemIteratorHelper(ConstRegionIteratorHelperType&& regionIteratorHelper, const SpatialMap<T>& container, const ColliderType& collider)
+            : container_(container)
+            , regionIteratorHelper_(std::move(regionIteratorHelper))
+            , collider_(collider)
+        {
+        }
+
+        ItemIterator begin() const
+        {
+            return ItemIterator(regionIteratorHelper_, collider_);
+        }
+
+        ItemIterator end() const
+        {
+            return ItemIterator(regionIteratorHelper_, collider_).End();
+        }
+
+    private:
+        const SpatialMap<T>& container_;
+        ConstRegionIteratorHelperType regionIteratorHelper_;
+        const ColliderType& collider_;
+    };
+
     ///
     /// SpatialMap implementaion
     ///
@@ -434,6 +768,34 @@ public:
     FilteredItemIteratorHelper<FilteredRegionIteratorHelper, ColliderType> ItemsCollidingWith(ColliderType itemFilter)
     {
         return FilteredItemIteratorHelper(FilteredRegionIteratorHelper(*this, BoundingRect(itemFilter, maxEntityRadius_)), *this, itemFilter);
+    }
+
+    ConstRegionIteratorHelper Regions() const
+    {
+        return ConstRegionIteratorHelper(*this);
+    }
+
+    ConstFilteredRegionIteratorHelper Regions(const Rect& regionFilter) const
+    {
+        return ConstFilteredRegionIteratorHelper(*this, regionFilter);
+    }
+
+    ConstItemIteratorHelper<ConstRegionIteratorHelper> Items() const
+    {
+        return ConstItemIteratorHelper(ConstRegionIteratorHelper(*this), *this);
+    }
+
+    ConstItemIteratorHelper<ConstFilteredRegionIteratorHelper> Items(const Rect& regionFilter) const
+    {
+        // increase bounding rect size because entities might be in a neighboring region, but overlap into our filter area
+        return ConstItemIteratorHelper(ConstFilteredRegionIteratorHelper(*this, BoundingRect(regionFilter, maxEntityRadius_)), *this);
+    }
+
+    template <typename ColliderType>
+        requires Collidable<ColliderType>
+    ConstFilteredItemIteratorHelper<ConstFilteredRegionIteratorHelper, ColliderType> ItemsCollidingWith(ColliderType itemFilter) const
+    {
+        return ConstFilteredItemIteratorHelper(ConstFilteredRegionIteratorHelper(*this, BoundingRect(itemFilter, maxEntityRadius_)), *this, itemFilter);
     }
 
     void Insert(std::shared_ptr<T> item)

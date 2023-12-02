@@ -361,4 +361,28 @@ TEST_CASE("SpatialMap", "[container]")
             REQUIRE(map.Size() == items);
         }
     }
+
+    SECTION("Const itersators")
+    {
+        for (int i = 0; i < 123; ++i) {
+            map.Insert(TestType::Random());
+        }
+
+        const auto& constMap = map;
+        for (const Rect& region : constMap.Regions()) {
+            REQUIRE_THAT(GetArea(region), Catch::Matchers::WithinAbs(regionArea, 0.0000000000001));
+        }
+        for (const Rect& region : constMap.Regions(BoundingRect(Circle(0, 0, 500)))) {
+            REQUIRE_THAT(GetArea(region), Catch::Matchers::WithinAbs(regionArea, 0.0000000000001));
+        }
+        for (const auto& item : constMap.Items()) {
+            REQUIRE(item->Exists());
+        }
+        for (const auto& item : constMap.Items(BoundingRect(Circle(0, 0, 500)))) {
+            REQUIRE(item->Exists());
+        }
+        for (const auto& item : constMap.ItemsCollidingWith(Circle(0, 0, 500))) {
+            REQUIRE(item->Exists());
+        }
+    }
 }
