@@ -525,3 +525,133 @@ TEST_CASE("const SpatialMap", "[container]")
         REQUIRE(counted == 0);
     }
 }
+
+TEST_CASE("SpatialMap const iterators", "[container]")
+{
+    Random::Seed(872346548);
+
+    constexpr double regionSize = 100;
+    constexpr double regionArea = regionSize * regionSize;
+    SpatialMap<TestType> map(TestType::RADIUS, regionSize);
+    REQUIRE(map.Size() == 0);
+
+    SECTION("Regions (Iterator)")
+    {
+        const size_t count = 123;
+        for (size_t i = 0; i < count; ++i) {
+            map.Insert(TestType::Random());
+        }
+
+        size_t regionCount = 0;
+        for (const Rect& region : map.CRegions()) {
+            ++regionCount;
+            REQUIRE_THAT(GetArea(region), Catch::Matchers::WithinAbs(regionArea, 0.0000000000001));
+        }
+        REQUIRE(regionCount > 0);
+        REQUIRE(regionCount <= count);
+        REQUIRE(regionCount == map.RegionCount());
+
+        SECTION("Regions(Rect regionFilter)")
+        {
+            size_t filteredRegionCount = 0;
+            for (const Rect& region : map.CRegions(BoundingRect(Circle(0, 0, 500)))) {
+                ++filteredRegionCount;
+                REQUIRE_THAT(GetArea(region), Catch::Matchers::WithinAbs(regionArea, 0.0000000000001));
+            }
+            REQUIRE(filteredRegionCount > 0);
+            REQUIRE(filteredRegionCount < regionCount);
+        }
+
+        map.Clear();
+
+        regionCount = 0;
+        for (const Rect& region : map.CRegions()) {
+            ++regionCount;
+            REQUIRE_THAT(GetArea(region), Catch::Matchers::WithinAbs(regionArea, 0.0000000000001));
+        }
+        REQUIRE(regionCount == 0);
+        REQUIRE(regionCount == map.RegionCount());
+
+        SECTION("One region per item")
+        {
+            size_t expectedRegionCount = 0;
+            for (int x = -10; x < 10; ++x) {
+                for (int y = -10; y < 10; ++y) {
+                    Point location{ (x * regionSize) + 3, (y * regionSize) + 3 };
+                    map.Insert(std::make_shared<TestType>(location, 0.0, 0.0));
+                    ++expectedRegionCount;
+                    regionCount = 0;
+                    for ([[maybe_unused]] const Rect& region : map.CRegions()) {
+                        ++regionCount;
+                    }
+                    REQUIRE(regionCount == expectedRegionCount);
+                    REQUIRE(regionCount == map.RegionCount());
+                }
+            }
+        }
+    }
+
+    SECTION("Items (Iterator)")
+    {
+        const size_t count = 123;
+        for (size_t i = 0; i < count; ++i) {
+            map.Insert(TestType::Random());
+        }
+        size_t counted = 0;
+        for (const auto& item : map.CItems()) {
+            REQUIRE(item);
+            REQUIRE(item->Exists());
+            ++counted;
+        }
+        REQUIRE(counted == count);
+
+        SECTION("Items(Rect regionFilter)")
+        {
+            size_t filteredItemCount = 0;
+            for (const auto& item : map.CItems(BoundingRect(Circle(0, 0, 500)))) {
+                REQUIRE(item);
+                REQUIRE(item->Exists());
+                ++filteredItemCount;
+            }
+            REQUIRE(filteredItemCount > 0);
+            REQUIRE(filteredItemCount < counted);
+
+            // FIXME and repeat the tests here from non-const tests!
+        }
+
+        map.Clear();
+
+        counted = 0;
+        for (const auto& item : map.CItems()) {
+            REQUIRE(item);
+            REQUIRE(item->Exists());
+            ++counted;
+        }
+        REQUIRE(counted == 0);
+    }
+
+    SECTION("ItemsCollidingWith (Iterator)")
+    {
+        const size_t count = 123;
+        for (size_t i = 0; i < count; ++i) {
+            map.Insert(TestType::Random());
+        }
+        size_t counted = 0;
+        for (const auto& item : map.CItemsCollidingWith(Circle{ 0.0, 0.0, 1000.0 })) {
+            REQUIRE(item);
+            REQUIRE(item->Exists());
+            ++counted;
+        }
+        REQUIRE(counted < count);
+
+        map.Clear();
+
+        counted = 0;
+        for (const auto& item : map.CItems()) {
+            REQUIRE(item);
+            REQUIRE(item->Exists());
+            ++counted;
+        }
+        REQUIRE(counted == 0);
+    }
+}
