@@ -129,6 +129,7 @@ public:
             {
                 std::tie(minX_, minY_) = container.GetCoordinate({ regionFilter.left, regionFilter.top });
                 std::tie(maxX_, maxY_) = container.GetCoordinate({ regionFilter.right, regionFilter.bottom });
+                // FIXME the x-1 Next() approach isn't great for getting the end() iter efficiently...
                 x_ = minX_ - 1;
                 y_ = minY_;
                 Next();
@@ -213,7 +214,7 @@ public:
 
     private:
         SpatialMap<T>& container_;
-        const Rect& regionFilter_;
+        Rect regionFilter_;
     };
 
     template <typename RegionIteratorHelperType>
@@ -306,27 +307,32 @@ public:
         public:
             explicit ItemIterator(RegionIteratorHelperType& regionIteratorHelper, const ColliderType& collider)
                 : regionIteratorHelper_(regionIteratorHelper)
-                , regionIter_(regionIteratorHelper_.begin())
+                , regionIter_(std::begin(regionIteratorHelper_))
                 , itemIter_{}
                 , nullIter_{}
                 , collider_(collider)
             {
                 if (regionIter_ != std::end(regionIteratorHelper_)) {
                     itemIter_ = std::begin(regionIter_.CurrentRegion().items_);
-                    Next();
+                }
+                if (itemIter_ != nullIter_) {
+                    IncrementRegionIfNecessary();
+                    if (itemIter_ != nullIter_ && !Collides(collider_, (*itemIter_)->GetCollide())) {
+                        SkipToNextValidItemIter();
+                    }
                 }
             }
 
             ItemIterator& operator++()
             {
-                Next();
+                SkipToNextValidItemIter();
                 return *this;
             }
 
             ItemIterator& End()
             {
                 regionIter_.End();
-                itemIter_ = {};
+                itemIter_ = nullIter_;
                 return *this;
             }
 
@@ -347,19 +353,24 @@ public:
             ContainerType::iterator nullIter_;
             const ColliderType& collider_;
 
-            void Next()
+            void SkipToNextValidItemIter()
             {
                 do {
                     ++itemIter_;
-                    if (itemIter_ == std::end(regionIter_.CurrentRegion().items_)) {
-                        ++regionIter_;
-                        if (regionIter_ != std::end(regionIteratorHelper_)) {
-                            itemIter_ = std::begin(regionIter_.CurrentRegion().items_);
-                        } else {
-                            itemIter_ = {};
-                        }
-                    }
+                    IncrementRegionIfNecessary();
                 } while (itemIter_ != nullIter_ && !Collides(collider_, (*itemIter_)->GetCollide()));
+            }
+
+            void IncrementRegionIfNecessary()
+            {
+                if (itemIter_ == std::end(regionIter_.CurrentRegion().items_)) {
+                    ++regionIter_;
+                    if (regionIter_ != std::end(regionIteratorHelper_)) {
+                        itemIter_ = std::begin(regionIter_.CurrentRegion().items_);
+                    } else {
+                        itemIter_ = nullIter_;
+                    }
+                }
             }
         };
 
@@ -475,6 +486,7 @@ public:
             {
                 std::tie(minX_, minY_) = container.GetCoordinate({ regionFilter.left, regionFilter.top });
                 std::tie(maxX_, maxY_) = container.GetCoordinate({ regionFilter.right, regionFilter.bottom });
+                // FIXME the x-1 Next() approach isn't great for getting the end() iter efficiently...
                 x_ = minX_ - 1;
                 y_ = minY_;
                 Next();
@@ -559,7 +571,7 @@ public:
 
     private:
         const SpatialMap<T>& container_;
-        const Rect& regionFilter_;
+        Rect regionFilter_;
     };
 
     template <typename ConstRegionIteratorHelperType>
@@ -646,27 +658,32 @@ public:
         public:
             explicit ItemIterator(const ConstRegionIteratorHelperType& regionIteratorHelper, const ColliderType& collider)
                 : regionIteratorHelper_(regionIteratorHelper)
-                , regionIter_(regionIteratorHelper_.begin())
+                , regionIter_(std::begin(regionIteratorHelper_))
                 , itemIter_{}
                 , nullIter_{}
                 , collider_(collider)
             {
                 if (regionIter_ != std::end(regionIteratorHelper_)) {
-                    itemIter_ = std::begin(regionIter_.CurrentRegion().items_);
-                    Next();
+                    itemIter_ = std::cbegin(regionIter_.CurrentRegion().items_);
+                }
+                if (itemIter_ != nullIter_) {
+                    IncrementRegionIfNecessary();
+                    if (itemIter_ != nullIter_ && !Collides(collider_, (*itemIter_)->GetCollide())) {
+                        SkipToNextValidItemIter();
+                    }
                 }
             }
 
             ItemIterator& operator++()
             {
-                Next();
+                SkipToNextValidItemIter();
                 return *this;
             }
 
             ItemIterator& End()
             {
                 regionIter_.End();
-                itemIter_ = {};
+                itemIter_ = nullIter_;
                 return *this;
             }
 
@@ -687,19 +704,24 @@ public:
             ContainerType::const_iterator nullIter_;
             const ColliderType& collider_;
 
-            void Next()
+            void SkipToNextValidItemIter()
             {
                 do {
                     ++itemIter_;
-                    if (itemIter_ == std::end(regionIter_.CurrentRegion().items_)) {
-                        ++regionIter_;
-                        if (regionIter_ != std::end(regionIteratorHelper_)) {
-                            itemIter_ = std::begin(regionIter_.CurrentRegion().items_);
-                        } else {
-                            itemIter_ = {};
-                        }
-                    }
+                    IncrementRegionIfNecessary();
                 } while (itemIter_ != nullIter_ && !Collides(collider_, (*itemIter_)->GetCollide()));
+            }
+
+            void IncrementRegionIfNecessary()
+            {
+                if (itemIter_ == std::cend(regionIter_.CurrentRegion().items_)) {
+                    ++regionIter_;
+                    if (regionIter_ != std::end(regionIteratorHelper_)) {
+                        itemIter_ = std::cbegin(regionIter_.CurrentRegion().items_);
+                    } else {
+                        itemIter_ = nullIter_;
+                    }
+                }
             }
         };
 
@@ -834,22 +856,22 @@ public:
         OnBeginIteration();
 
         std::erase_if(regions_, [&](auto& pair) -> bool
+        {
+            auto& [ key, region ] = pair;
+
+            region.items_.erase(std::remove_if(std::begin(region.items_), std::end(region.items_), [&](auto& item) -> bool
             {
-                auto& [ key, region ] = pair;
+                bool removeItemCompletely = !item->Exists();
+                bool movedToDifferentRegion = !removeItemCompletely && item->Move() && GetCoordinate(item->GetLocation()) != region.coordinates_;
 
-                region.items_.erase(std::remove_if(std::begin(region.items_), std::end(region.items_), [&](auto& item) -> bool
-                    {
-                        bool removeItemCompletely = !item->Exists();
-                        bool movedToDifferentRegion = !removeItemCompletely && item->Move() && GetCoordinate(item->GetLocation()) != region.coordinates_;
+                if (movedToDifferentRegion) {
+                    AddItem(item);
+                }
+                return removeItemCompletely || movedToDifferentRegion;
+            }), std::end(region.items_));
 
-                        if (movedToDifferentRegion) {
-                            AddItem(item);
-                        }
-                        return removeItemCompletely || movedToDifferentRegion;
-                    }), std::end(region.items_));
-
-                return region.items_.empty();
-            });
+            return region.items_.empty();
+        });
 
         OnEndIteration();
     }

@@ -200,6 +200,39 @@ TEST_CASE("SpatialMap", "[container]")
             }
             REQUIRE(filteredItemCount > 0);
             REQUIRE(filteredItemCount < counted);
+
+            const int repeats = 25;
+            for (int i = 0; i < repeats; ++i) {
+                map.Clear();
+                const size_t items = Random::Number(7, 55);
+                const Circle c{Random::Number<double>(-1000, 1000), Random::Number<double>(-1000, 1000), Random::Number<double>(100, 1000)};
+                for (size_t i = 0; i < items; ++i) {
+                    Point p = Random::PointIn(c);
+                    REQUIRE(Contains(c, p));
+                    REQUIRE(Collides(c, p));
+                    map.Insert(std::make_shared<TestType>(p, 0, 0));
+                }
+                REQUIRE(map.Size() == items);
+
+                size_t count = 0;
+                for ([[ maybe_unused ]] auto& item : map.Items(BoundingRect(c))) {
+                    ++count;
+                }
+                REQUIRE(count == items);
+
+                count = 0;
+                for ([[ maybe_unused ]] auto& item : map.ItemsCollidingWith(c)) {
+                    ++count;
+                }
+                REQUIRE(count == items);
+
+                for (int i = 0; i < 123; ++i) {
+                    Rect rect{-100000, -100000, 10000, 10000};
+                    for ([[ maybe_unused ]] auto& item : map.ItemsCollidingWith(Random::PointIn(rect))) {
+                        ++count;
+                    }
+                }
+            }
         }
 
         map.Clear();
@@ -306,7 +339,6 @@ TEST_CASE("SpatialMap", "[container]")
         }
     }
 
-
     SECTION("MoveAndRemove")
     {
         const size_t initialCount = 123;
@@ -361,28 +393,135 @@ TEST_CASE("SpatialMap", "[container]")
             REQUIRE(map.Size() == items);
         }
     }
+}
 
-    SECTION("Const itersators")
+TEST_CASE("const SpatialMap", "[container]")
+{
+    Random::Seed(872346548);
+
+    constexpr double regionSize = 100;
+    constexpr double regionArea = regionSize * regionSize;
+    SpatialMap<TestType> nonConstMap(TestType::RADIUS, regionSize);
+    const SpatialMap<TestType>& map = nonConstMap;
+    REQUIRE(map.Size() == 0);
+
+    SECTION("Regions (Iterator)")
     {
-        for (int i = 0; i < 123; ++i) {
-            map.Insert(TestType::Random());
+        const size_t count = 123;
+        for (size_t i = 0; i < count; ++i) {
+            nonConstMap.Insert(TestType::Random());
         }
 
-        const auto& constMap = map;
-        for (const Rect& region : constMap.Regions()) {
+        size_t regionCount = 0;
+        for (const Rect& region : map.Regions()) {
+            ++regionCount;
             REQUIRE_THAT(GetArea(region), Catch::Matchers::WithinAbs(regionArea, 0.0000000000001));
         }
-        for (const Rect& region : constMap.Regions(BoundingRect(Circle(0, 0, 500)))) {
+        REQUIRE(regionCount > 0);
+        REQUIRE(regionCount <= count);
+        REQUIRE(regionCount == map.RegionCount());
+
+        SECTION("Regions(Rect regionFilter)")
+        {
+            size_t filteredRegionCount = 0;
+            for (const Rect& region : map.Regions(BoundingRect(Circle(0, 0, 500)))) {
+                ++filteredRegionCount;
+                REQUIRE_THAT(GetArea(region), Catch::Matchers::WithinAbs(regionArea, 0.0000000000001));
+            }
+            REQUIRE(filteredRegionCount > 0);
+            REQUIRE(filteredRegionCount < regionCount);
+        }
+
+        nonConstMap.Clear();
+
+        regionCount = 0;
+        for (const Rect& region : map.Regions()) {
+            ++regionCount;
             REQUIRE_THAT(GetArea(region), Catch::Matchers::WithinAbs(regionArea, 0.0000000000001));
         }
-        for (const auto& item : constMap.Items()) {
-            REQUIRE(item->Exists());
+        REQUIRE(regionCount == 0);
+        REQUIRE(regionCount == map.RegionCount());
+
+        SECTION("One region per item")
+        {
+            size_t expectedRegionCount = 0;
+            for (int x = -10; x < 10; ++x) {
+                for (int y = -10; y < 10; ++y) {
+                    Point location{ (x * regionSize) + 3, (y * regionSize) + 3 };
+                    nonConstMap.Insert(std::make_shared<TestType>(location, 0.0, 0.0));
+                    ++expectedRegionCount;
+                    regionCount = 0;
+                    for ([[maybe_unused]] const Rect& region : map.Regions()) {
+                        ++regionCount;
+                    }
+                    REQUIRE(regionCount == expectedRegionCount);
+                    REQUIRE(regionCount == map.RegionCount());
+                }
+            }
         }
-        for (const auto& item : constMap.Items(BoundingRect(Circle(0, 0, 500)))) {
-            REQUIRE(item->Exists());
+    }
+
+    SECTION("Items (Iterator)")
+    {
+        const size_t count = 123;
+        for (size_t i = 0; i < count; ++i) {
+            nonConstMap.Insert(TestType::Random());
         }
-        for (const auto& item : constMap.ItemsCollidingWith(Circle(0, 0, 500))) {
+        size_t counted = 0;
+        for (const auto& item : map.Items()) {
+            REQUIRE(item);
             REQUIRE(item->Exists());
+            ++counted;
         }
+        REQUIRE(counted == count);
+
+        SECTION("Items(Rect regionFilter)")
+        {
+            size_t filteredItemCount = 0;
+            for (const auto& item : map.Items(BoundingRect(Circle(0, 0, 500)))) {
+                REQUIRE(item);
+                REQUIRE(item->Exists());
+                ++filteredItemCount;
+            }
+            REQUIRE(filteredItemCount > 0);
+            REQUIRE(filteredItemCount < counted);
+
+            // FIXME and repeat the tests here from non-const tests!
+        }
+
+        nonConstMap.Clear();
+
+        counted = 0;
+        for (const auto& item : map.Items()) {
+            REQUIRE(item);
+            REQUIRE(item->Exists());
+            ++counted;
+        }
+        REQUIRE(counted == 0);
+    }
+
+    SECTION("ItemsCollidingWith (Iterator)")
+    {
+        const size_t count = 123;
+        for (size_t i = 0; i < count; ++i) {
+            nonConstMap.Insert(TestType::Random());
+        }
+        size_t counted = 0;
+        for (const auto& item : map.ItemsCollidingWith(Circle{ 0.0, 0.0, 1000.0 })) {
+            REQUIRE(item);
+            REQUIRE(item->Exists());
+            ++counted;
+        }
+        REQUIRE(counted < count);
+
+        nonConstMap.Clear();
+
+        counted = 0;
+        for (const auto& item : map.Items()) {
+            REQUIRE(item);
+            REQUIRE(item->Exists());
+            ++counted;
+        }
+        REQUIRE(counted == 0);
     }
 }
