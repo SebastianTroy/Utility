@@ -958,9 +958,22 @@ public:
         return ConstFilteredItemIteratorHelper(ConstFilteredRegionIteratorHelper(*this, BoundingRect(itemFilter, maxEntityRadius_)), *this, itemFilter);
     }
 
-    void Insert(std::shared_ptr<T> item)
+    void Insert(const std::shared_ptr<T>& item)
     {
-        AddItem(item);
+        if (currentIterators_ != 0) {
+            itemsAddedDuringIteration_.push_back(item);
+        } else {
+            RegionAt(item->GetLocation()).items_.push_back(item);
+        }
+    }
+
+    void Insert(std::shared_ptr<T>&& item)
+    {
+        if (currentIterators_ != 0) {
+            itemsAddedDuringIteration_.push_back(std::move(item));
+        } else {
+            RegionAt(item->GetLocation()).items_.push_back(std::move(item));
+        }
     }
 
     void Erase(const std::shared_ptr<T>& toErase)
@@ -1003,7 +1016,7 @@ public:
                 bool movedToDifferentRegion = !removeItemCompletely && item->Move() && GetCoordinate(item->GetLocation()) != region.coordinates_;
 
                 if (movedToDifferentRegion) {
-                    AddItem(item);
+                    Insert(std::move(item));
                 }
                 return removeItemCompletely || movedToDifferentRegion;
             }), std::end(region.items_));
@@ -1012,6 +1025,16 @@ public:
         });
 
         OnEndIteration();
+    }
+
+    void SetRegionSize(double newRegionSize)
+    {
+        SpatialMap<T> temp(maxEntityRadius_, newRegionSize);
+        for (auto& item : Items()) {
+            temp.Insert(std::move(item));
+        }
+        std::swap(regions_, temp.regions_);
+        regionSize_ = newRegionSize;
     }
 
     size_t Size() const
@@ -1058,19 +1081,10 @@ private:
     void OnEndIteration()
     {
         if (--currentIterators_ == 0) {
-            for (const auto& item : itemsAddedDuringIteration_) {
-                AddItem(item);
+            for (auto& item : itemsAddedDuringIteration_) {
+                Insert(std::move(item));
             }
             itemsAddedDuringIteration_.clear();
-        }
-    }
-
-    void AddItem(const std::shared_ptr<T>& item)
-    {
-        if (currentIterators_ != 0) {
-            itemsAddedDuringIteration_.push_back(item);
-        } else {
-            RegionAt(item->GetLocation()).items_.push_back(item);
         }
     }
 
@@ -1098,8 +1112,8 @@ private:
     {
         uint64_t x = std::bit_cast<uint64_t>(static_cast<int64_t>(coords.first));
         uint64_t y = std::bit_cast<uint64_t>(static_cast<int64_t>(coords.second));
-        return ((x & 0xFFFFFFFF) << 0)
-               | ((y & 0xFFFFFFFF) << 32);
+        return ((x & 0xFFFFFFFF) <<  0)
+             | ((y & 0xFFFFFFFF) << 32);
     }
 };
 
