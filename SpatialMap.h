@@ -671,9 +671,9 @@ public:
                 return other.regionIter_ != regionIter_ && other.itemIter_ != itemIter_;
             }
 
-            const std::shared_ptr<T>& operator*() const
+            const T& operator*() const
             {
-                return *itemIter_;
+                return **itemIter_;
             }
 
         private:
@@ -763,9 +763,9 @@ public:
                 return other.regionIter_ != regionIter_ && other.itemIter_ != itemIter_;
             }
 
-            const std::shared_ptr<T>& operator*() const
+            const T& operator*() const
             {
-                return *itemIter_;
+                return **itemIter_;
             }
 
         private:

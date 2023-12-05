@@ -469,8 +469,7 @@ TEST_CASE("const SpatialMap", "[container]")
         }
         size_t counted = 0;
         for (const auto& item : map.Items()) {
-            REQUIRE(item);
-            REQUIRE(item->Exists());
+            REQUIRE(item.Exists());
             ++counted;
         }
         REQUIRE(counted == count);
@@ -479,8 +478,7 @@ TEST_CASE("const SpatialMap", "[container]")
         {
             size_t filteredItemCount = 0;
             for (const auto& item : map.Items(BoundingRect(Circle(0, 0, 500)))) {
-                REQUIRE(item);
-                REQUIRE(item->Exists());
+                REQUIRE(item.Exists());
                 ++filteredItemCount;
             }
             REQUIRE(filteredItemCount > 0);
@@ -493,8 +491,7 @@ TEST_CASE("const SpatialMap", "[container]")
 
         counted = 0;
         for (const auto& item : map.Items()) {
-            REQUIRE(item);
-            REQUIRE(item->Exists());
+            REQUIRE(item.Exists());
             ++counted;
         }
         REQUIRE(counted == 0);
@@ -508,8 +505,7 @@ TEST_CASE("const SpatialMap", "[container]")
         }
         size_t counted = 0;
         for (const auto& item : map.ItemsCollidingWith(Circle{ 0.0, 0.0, 1000.0 })) {
-            REQUIRE(item);
-            REQUIRE(item->Exists());
+            REQUIRE(item.Exists());
             ++counted;
         }
         REQUIRE(counted < count);
@@ -518,8 +514,7 @@ TEST_CASE("const SpatialMap", "[container]")
 
         counted = 0;
         for (const auto& item : map.Items()) {
-            REQUIRE(item);
-            REQUIRE(item->Exists());
+            REQUIRE(item.Exists());
             ++counted;
         }
         REQUIRE(counted == 0);
@@ -599,8 +594,7 @@ TEST_CASE("SpatialMap const iterators", "[container]")
         }
         size_t counted = 0;
         for (const auto& item : map.CItems()) {
-            REQUIRE(item);
-            REQUIRE(item->Exists());
+            REQUIRE(item.Exists());
             ++counted;
         }
         REQUIRE(counted == count);
@@ -609,8 +603,7 @@ TEST_CASE("SpatialMap const iterators", "[container]")
         {
             size_t filteredItemCount = 0;
             for (const auto& item : map.CItems(BoundingRect(Circle(0, 0, 500)))) {
-                REQUIRE(item);
-                REQUIRE(item->Exists());
+                REQUIRE(item.Exists());
                 ++filteredItemCount;
             }
             REQUIRE(filteredItemCount > 0);
@@ -623,8 +616,7 @@ TEST_CASE("SpatialMap const iterators", "[container]")
 
         counted = 0;
         for (const auto& item : map.CItems()) {
-            REQUIRE(item);
-            REQUIRE(item->Exists());
+            REQUIRE(item.Exists());
             ++counted;
         }
         REQUIRE(counted == 0);
@@ -638,8 +630,7 @@ TEST_CASE("SpatialMap const iterators", "[container]")
         }
         size_t counted = 0;
         for (const auto& item : map.CItemsCollidingWith(Circle{ 0.0, 0.0, 1000.0 })) {
-            REQUIRE(item);
-            REQUIRE(item->Exists());
+            REQUIRE(item.Exists());
             ++counted;
         }
         REQUIRE(counted < count);
@@ -648,8 +639,7 @@ TEST_CASE("SpatialMap const iterators", "[container]")
 
         counted = 0;
         for (const auto& item : map.CItems()) {
-            REQUIRE(item);
-            REQUIRE(item->Exists());
+            REQUIRE(item.Exists());
             ++counted;
         }
         REQUIRE(counted == 0);
